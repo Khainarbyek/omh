@@ -4,8 +4,6 @@ import React, { useState, useEffect } from "react";
 import { fabric } from "fabric";
 
 export default function Home() {
-
-
     const [canvas, setCanvas] = useState<fabric.Canvas>();
 
     useEffect(() => {
@@ -15,7 +13,7 @@ export default function Home() {
             backgroundColor: "#f5f5f5",
         });
 
-        // settings for all canvas in the app
+        // Settings for all canvas in the app
         fabric.Object.prototype.transparentCorners = false;
         fabric.Object.prototype.cornerColor = "#2BEBC8";
         fabric.Object.prototype.cornerStyle = "rect";
@@ -50,13 +48,18 @@ export default function Home() {
     };
 
     const addText = (canvas?: fabric.Canvas) => {
-        const text = new fabric.Text('Custom Text', {
+        if (!canvas) return;
+
+        const text = new fabric.IText('Custom Text', {
             left: 100,
             top: 250,
             fontSize: 20,
             fill: '#000',
+            editable: true, // Make text editable
         });
-        canvas?.add(text);
+
+        canvas.add(text);
+        canvas.setActiveObject(text); // Automatically focus on the added text
     };
 
     const addImage = (url: string, canvas?: fabric.Canvas) => {
@@ -82,21 +85,10 @@ export default function Home() {
         });
         canvas.setZoom(scaleFactor);
 
-        // const cropArea = {
-        //     left: 100, // X-coordinate of the top-left corner
-        //     top: 150,  // Y-coordinate of the top-left corner
-        //     width: 296, // Width of the cropped area
-        //     height: 608, // Height of the cropped area
-        // };
-
         // Generate high-resolution dataURL
         const dataURL = canvas.toDataURL({
             format: 'webp',
             quality: 1,
-            // left: cropArea.left,
-            // top: cropArea.top,
-            // width: cropArea.width,
-            // height: cropArea.height,
         });
 
         // Restore canvas to original size
