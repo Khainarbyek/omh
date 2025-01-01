@@ -1,10 +1,16 @@
-"use client"; // next.js app router
+"use client";
 
 import React, { useState, useEffect } from "react";
 import { fabric } from "fabric";
 
 export default function Home() {
     const [canvas, setCanvas] = useState<fabric.Canvas>();
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [images] = useState([
+        { name: "1", url: "/images/1.png" },
+        { name: "2", url: "/images/2.png" },
+        { name: "3", url: "/images/3.png" }
+    ]);
 
     useEffect(() => {
         const c = new fabric.Canvas("canvas", {
@@ -12,13 +18,6 @@ export default function Home() {
             width: 296,
             backgroundColor: "#f5f5f5",
         });
-
-        // Settings for all canvas in the app
-        fabric.Object.prototype.transparentCorners = false;
-        fabric.Object.prototype.cornerColor = "#2BEBC8";
-        fabric.Object.prototype.cornerStyle = "rect";
-        fabric.Object.prototype.cornerStrokeColor = "#2BEBC8";
-        fabric.Object.prototype.cornerSize = 6;
 
         fabric.loadSVGFromURL('/iphone-296x608.svg', (objects, options) => {
             const caseGroup = fabric.util.groupSVGElements(objects, options);
@@ -34,17 +33,38 @@ export default function Home() {
         };
     }, []);
 
-    const addRect = (canvas?: fabric.Canvas) => {
-        const rect = new fabric.Rect({
-            height: 100,
-            width: 100,
-            stroke: "blue",
-            left: 100,
-            top: 100,
-            fill: "green",
+    const uploadImage = (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (!canvas || !event.target.files || event.target.files.length === 0) return;
+
+        const file = event.target.files[0];
+        const reader = new FileReader();
+
+        reader.onload = () => {
+            const result = reader.result as string;
+            fabric.Image.fromURL(result, (img) => {
+                img.scaleToWidth(100);
+                img.set({ left: 100, top: 100 });
+                canvas.add(img);
+            });
+        };
+
+        reader.readAsDataURL(file);
+    };
+
+    const exportImage = (canvas?: fabric.Canvas) => {
+        if (!canvas) return;
+
+        const dataURL = canvas.toDataURL({
+            format: 'png',
+            quality: 1,
         });
-        canvas?.add(rect);
-        canvas?.requestRenderAll();
+
+        const link = document.createElement('a');
+        link.href = dataURL;
+        link.download = 'custom-image.png';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     };
 
     const addText = (canvas?: fabric.Canvas) => {
@@ -52,61 +72,41 @@ export default function Home() {
 
         const text = new fabric.IText('Custom Text', {
             left: 100,
-            top: 250,
+            top: 100,
             fontSize: 20,
             fill: '#000',
-            editable: true, // Make text editable
         });
 
         canvas.add(text);
-        canvas.setActiveObject(text); // Automatically focus on the added text
+        canvas.setActiveObject(text);
     };
 
-    const addImage = (url: string, canvas?: fabric.Canvas) => {
-        fabric.Image.fromURL(url, (img) => {
-            img.scaleToWidth(100);
-            img.set({ left: 150, top: 150 });
-            canvas?.add(img);
-        });
-    };
-
-    const exportImage = (canvas?: fabric.Canvas) => {
+    const addRect = (canvas?: fabric.Canvas) => {
         if (!canvas) return;
 
-        // Specify higher resolution
-        const scaleFactor = 2; // Increase scale factor for higher resolution
-        const originalWidth = canvas.width || 0;
-        const originalHeight = canvas.height || 0;
-
-        // Temporarily scale canvas
-        canvas.setDimensions({
-            width: originalWidth * scaleFactor,
-            height: originalHeight * scaleFactor,
-        });
-        canvas.setZoom(scaleFactor);
-
-        // Generate high-resolution dataURL
-        const dataURL = canvas.toDataURL({
-            format: 'webp',
-            quality: 1,
+        const rect = new fabric.Rect({
+            width: 100,
+            height: 100,
+            fill: 'green',
+            stroke: 'blue',
+            left: 50,
+            top: 50,
         });
 
-        // Restore canvas to original size
-        canvas.setZoom(1);
-        canvas.setDimensions({
-            width: originalWidth,
-            height: originalHeight,
+        canvas.add(rect);
+        canvas.setActiveObject(rect);
+    };
+
+    const addImage = (url: string) => {
+        if (!canvas) return;
+
+        fabric.Image.fromURL(url, (img) => {
+            img.scaleToWidth(100);
+            img.set({ left: 100, top: 100 });
+            canvas.add(img);
         });
 
-        // Create a temporary <a> element
-        const link = document.createElement('a');
-        link.href = dataURL;
-        link.download = 'custom-iphone-case.png';
-        document.body.appendChild(link);
-
-        // Trigger download and remove the link
-        link.click();
-        document.body.removeChild(link);
+        setIsModalOpen(false);
     };
 
     return (
@@ -115,11 +115,47 @@ export default function Home() {
                 <div className="absolute z-10 text-white">
                     <button className="bg-blue-500 m-4 p-2 rounded-md" onClick={() => exportImage(canvas)}>Export image</button>
                     <button className="bg-blue-500 m-4 p-2 rounded-md" onClick={() => addText(canvas)}>Add Text</button>
-                    <button className="bg-blue-500 m-4 p-2 rounded-md" onClick={() => addImage('/friends-350x350.png', canvas)}>Add Image</button>
+                    <button className="bg-blue-500 m-4 p-2 rounded-md" onClick={() => setIsModalOpen(true)}>Add Image</button>
                     <button className="bg-blue-500 m-4 p-2 rounded-md" onClick={() => addRect(canvas)}>Rectangle</button>
+                    {/* Upload Image Button */}
+                    <label className="bg-blue-500 m-4 p-2 rounded-md cursor-pointer inline-block">
+                        Upload Image
+                        <input
+                            type="file"
+                            accept="image/*"
+                            style={{ display: 'none' }}
+                            onChange={uploadImage}
+                        />
+                    </label>
                 </div>
                 <canvas id="canvas" className="ml-20 mt-16 rounded-[50px]" />
             </div>
+
+            {isModalOpen && (
+                <div className="absolute top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center">
+                    <div className="bg-white p-4 rounded-md w-1/2">
+                        <h2 className="text-center mb-4">Select an Image</h2>
+                        <div className="grid grid-cols-3 gap-4">
+                            {images.map((image) => (
+                                <div
+                                    key={image.url}
+                                    className="cursor-pointer border p-2 hover:shadow-lg"
+                                    onClick={() => addImage(image.url)}
+                                >
+                                    <img src={image.url} alt={image.name} className="w-full h-auto" />
+                                    <p className="text-center mt-2">{image.name}</p>
+                                </div>
+                            ))}
+                        </div>
+                        <button
+                            className="bg-red-500 text-white p-2 rounded-md mt-4"
+                            onClick={() => setIsModalOpen(false)}
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
