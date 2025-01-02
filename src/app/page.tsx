@@ -172,7 +172,6 @@ export default function Home() {
 
     const exportImage = (canvas?: fabric.Canvas) => {
         if (!canvas) return;
-        
         const dataURL = canvas.toDataURL({
             format: 'png',
             quality: 1,

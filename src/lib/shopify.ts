@@ -3,6 +3,7 @@ const SHOPIFY_ADMIN_API_ACCESS_TOKEN = process.env.SHOPIFY_ADMIN_API_ACCESS_TOKE
 const SHOPIFY_API_VERSION = process.env.SHOPIFY_API_VERSION!;
 
 type Product = {
+    id?: string;
     title: string;
     body_html: string;
     vendor: string;
@@ -14,7 +15,7 @@ type Product = {
 };
 
 // Fetch shop details
-const getShop = async () => {
+const getShop = async (): Promise<string> => {
     try {
         const response = await fetch(`https://${SHOPIFY_STORE_URL}/admin/api/${SHOPIFY_API_VERSION}/shop.json`, {
             method: 'GET',
@@ -25,20 +26,19 @@ const getShop = async () => {
         });
 
         const result = await response.json();
-
-        if (result.errors) {
-            throw new Error(`Error fetching shop details: ${JSON.stringify(result.errors)}`);
+        if (result.ok === false) {
+            return Promise.reject(new Error('Failed to fetch shop data' + JSON.stringify(result.errors)));
         }
+
 
         return result.shop.name;
     } catch (error) {
-        console.error(error);
-        return null;
+        return Promise.reject(new Error('Failed to fetch shop data' + error));
     }
 };
 
 // Fetch a specific product
-const fetchProduct = async (id: string) => {
+const fetchProduct = async (id: string): Promise<Product> => {
     try {
         const response = await fetch(`https://${SHOPIFY_STORE_URL}/admin/api/${SHOPIFY_API_VERSION}/products/${id}.json`, {
             method: 'GET',
@@ -49,21 +49,20 @@ const fetchProduct = async (id: string) => {
         });
 
         const result = await response.json();
-
         if (result.errors) {
             console.error('Error fetching product:', result.errors);
-            throw new Error(JSON.stringify(result.errors));
+            return Promise.reject(new Error('Failed to fetch shop data' + JSON.stringify(result.errors)));
         }
 
         return result.product || {};
     } catch (error) {
         console.error(error);
-        return {};
+        return Promise.reject(new Error('Failed to fetch product data' + error));
     }
 };
 
 // Create a new product
-const createProduct = async (product: Product) => {
+const createProduct = async (product: Product): Promise<Product> => {
     try {
         const productData = {
             product: {
@@ -90,14 +89,12 @@ const createProduct = async (product: Product) => {
         const result = await response.json();
 
         if (result.errors) {
-            console.error('Error creating product:', result.errors);
-            throw new Error(JSON.stringify(result.errors));
+            return Promise.reject(new Error('Failed to create a product' + JSON.stringify(result.errors)));
         }
 
         return result.product;
     } catch (error) {
-        console.error(error);
-        return null;
+        return Promise.reject(new Error('Failed to create a product' + error));
     }
 };
 
@@ -127,4 +124,4 @@ const cloneProduct = async (originalProductId: string) => {
     }
 };
 
-export { cloneProduct };
+export { cloneProduct, getShop, fetchProduct, createProduct };
