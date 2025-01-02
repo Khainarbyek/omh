@@ -31,7 +31,8 @@ export default function Home() {
                 const target = transform.target;
                 c.remove(target); // Remove the object
                 c.requestRenderAll(); // Refresh the canvas
-            },
+                return true; // Return a boolean value
+            },
             render: (ctx, left, top) => {
                 const img = new Image();
                 img.src = "/icons/trash-icon.png"; // Replace with your trash icon path
