@@ -157,6 +157,19 @@ export default function Home() {
         reader.readAsDataURL(file);
     };
 
+    //TODO: Use the cloneProduct function
+    const cloneProduct = async () => {
+        const productId = '12345';
+        const response = await fetch('/api/shopify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ originalProductId: productId }),
+        });
+        
+        const data = await response.json();
+        console.log('Cloned Product:', data);
+    };
+
     const exportImage = (canvas?: fabric.Canvas) => {
         if (!canvas) return;
 
