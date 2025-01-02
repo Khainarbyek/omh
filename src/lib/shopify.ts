@@ -1,7 +1,17 @@
-
 const SHOPIFY_STORE_URL = process.env.SHOPIFY_STORE_URL!;
 const SHOPIFY_ADMIN_API_ACCESS_TOKEN = process.env.SHOPIFY_ADMIN_API_ACCESS_TOKEN!;
 const SHOPIFY_API_VERSION = process.env.SHOPIFY_API_VERSION!;
+
+type Product = {
+    title: string;
+    body_html: string;
+    vendor: string;
+    product_type: string;
+    tags: string[];
+    options?: unknown[]; // Refine this if possible
+    variants?: unknown[]; // Refine this if possible
+    images?: unknown[]; // Refine this if possible
+};
 
 // Fetch shop details
 const getShop = async () => {
@@ -53,7 +63,7 @@ const fetchProduct = async (id: string) => {
 };
 
 // Create a new product
-const createProduct = async (product: any) => {
+const createProduct = async (product: Product) => {
     try {
         const productData = {
             product: {
