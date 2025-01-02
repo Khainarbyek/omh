@@ -1,4 +1,4 @@
-type PixabayImage = {
+export type PixabayImage = {
     id: number;
     pageURL: string;
     type: string;

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { fabric } from "fabric";
+import { PixabayImage } from "@/types/pixabay_image";
 
 export default function Home() {
     const [canvas, setCanvas] = useState<fabric.Canvas>();

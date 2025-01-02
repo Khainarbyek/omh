@@ -1,4 +1,4 @@
-type ShopifyProduct = {
+export type ShopifyProduct = {
     id?: string;
     title: string;
     body_html: string;
