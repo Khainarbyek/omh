@@ -7,11 +7,7 @@ export default function Home() {
     const [canvas, setCanvas] = useState<fabric.Canvas>();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isBackgroundModalOpen, setIsBackgroundModalOpen] = useState(false);
-    const [images] = useState([
-        { name: "Image 1", url: "/images/1.png" },
-        { name: "Image 2", url: "/images/2.png" },
-        { name: "Image 3", url: "/images/3.png" }
-    ]);
+    const [images, setImages] = useState<PixabayImage[]>([]);
 
     useEffect(() => {
         const c = new fabric.Canvas("canvas", {
@@ -215,6 +211,30 @@ export default function Home() {
         canvas.setActiveObject(rect);
     };
 
+    useEffect(() => {
+        const fetchImages = async () => {
+            try {
+                const response = await fetch('/api/images', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        searchQuery: 'iphone',
+                        category: 'fashion',
+                        per_page: 30,
+                        image_type: 'photo',
+                    }),
+                });
+                const data = await response.json();
+                if(data.hits) setImages(data.hits);
+            } catch (error) {
+                console.error('Error fetching images:', error);
+            }
+        };
+
+        fetchImages();
+    }, []);
+
+
     return (
         <div className="w-full relative bg-white h-screen">
             <div className="relative">
@@ -241,17 +261,17 @@ export default function Home() {
             {/* Add Image Modal */}
             {isModalOpen && (
                 <div className="absolute top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center">
-                    <div className="bg-white p-4 rounded-md w-1/2">
+                    <div className="bg-white p-4 rounded-md w-1/2 text-black">
                         <h2 className="text-center mb-4">Select an Image</h2>
                         <div className="grid grid-cols-3 gap-4">
                             {images.map((image) => (
                                 <div
-                                    key={image.url}
+                                    key={image.id}
                                     className="cursor-pointer border p-2 hover:shadow-lg"
-                                    onClick={() => addImage(image.url)}
+                                    onClick={() => addImage(image.largeImageURL)}
                                 >
-                                    <img src={image.url} alt={image.name} className="w-full h-auto" />
-                                    <p className="text-center mt-2">{image.name}</p>
+                                    <img src={image.webformatURL} alt={image.tags} className="w-full h-auto" />
+                                    <p className="text-center mt-2">{image.tags}</p>
                                 </div>
                             ))}
                         </div>
@@ -273,12 +293,12 @@ export default function Home() {
                         <div className="grid grid-cols-3 gap-4">
                             {images.map((image) => (
                                 <div
-                                    key={image.url}
+                                    key={image.id}
                                     className="cursor-pointer border p-2 hover:shadow-lg"
-                                    onClick={() => setBackgroundFromImage(image.url)}
+                                    onClick={() => setBackgroundFromImage(image.largeImageURL)}
                                 >
-                                    <img src={image.url} alt={image.name} className="w-full h-auto" />
-                                    <p className="text-center mt-2">{image.name}</p>
+                                    <img src={image.webformatURL} alt={image.tags} className="w-full h-auto" />
+                                    <p className="text-center mt-2">{image.tags}</p>
                                 </div>
                             ))}
                         </div>
