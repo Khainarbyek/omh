@@ -157,9 +157,22 @@ export default function Home() {
         reader.readAsDataURL(file);
     };
 
+    //TODO: Use the cloneProduct function cloneProduct("9692855959837");
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const cloneProduct = async (productId:string) => {
+        const response = await fetch('/api/shopify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ originalProductId: productId }),
+        });
+        
+        const data = await response.json();
+        console.log('Cloned Product:', data);
+    };
+
     const exportImage = (canvas?: fabric.Canvas) => {
         if (!canvas) return;
-
+        
         const dataURL = canvas.toDataURL({
             format: 'png',
             quality: 1,
