@@ -10,6 +10,7 @@ export default function Product() {
     const [canvas, setCanvas] = useState<fabric.Canvas>();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isBackgroundModalOpen, setIsBackgroundModalOpen] = useState(false);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [images, setImages] = useState<PixabayImage[]>([]);
 
     const params = useParams();
@@ -229,10 +230,10 @@ export default function Product() {
         }
     };
 
-    const exportImage = async (canvas?: fabric.Canvas) => {
+    const purchaseProduct = async (canvas?: fabric.Canvas) => {
         if (!canvas) return;
 
-        // Export with high quality
+        // Export with high quality 
         // Increase the canvas dimensions for higher quality
         const originalWidth = canvas.width ?? 1;
         const originalHeight = canvas.height ?? 1;
@@ -275,12 +276,25 @@ export default function Product() {
         canvas.setZoom(1);
 
         cloneProduct(productId, imageUrl);
-        // const link = document.createElement('a');
-        // link.href = dataURL;
-        // link.download = 'custom-image.png';
-        // document.body.appendChild(link);
-        // link.click();
-        // document.body.removeChild(link);
+    };
+
+    const exportImage = async (canvas?: fabric.Canvas) => {
+        if (!canvas) return;
+
+        const fileType = "webp";
+        const fileName = `${productId}-${new Date().toISOString()}.${fileType}`;
+
+        const dataURL = canvas.toDataURL({
+            format: fileType,
+            quality: 1,
+        });
+        
+        const link = document.createElement('a');
+        link.href = dataURL;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     };
 
     const addText = (canvas?: fabric.Canvas) => {
@@ -336,11 +350,11 @@ export default function Product() {
     //     fetchImages();
     // }, []);
 
-
     return (
         <div className="w-full relative bg-white h-screen">
             <div className="relative">
                 <div className="absolute z-10 text-white">
+                    <button className="bg-blue-500 m-4 p-2 rounded-md" onClick={() => purchaseProduct(canvas)}>Purchase product</button>
                     <button className="bg-blue-500 m-4 p-2 rounded-md" onClick={() => exportImage(canvas)}>Export image</button>
                     <button className="bg-blue-500 m-4 p-2 rounded-md" onClick={() => addText(canvas)}>Add Text</button>
                     <button className="bg-blue-500 m-4 p-2 rounded-md" onClick={() => addRect(canvas)}>Rectangle</button>
