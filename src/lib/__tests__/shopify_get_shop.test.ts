@@ -11,7 +11,7 @@ describe('getShop', () => {
     it('should return the shop name when the API call is successful', async () => {
         const mockResponse = {
             ok: true,
-            json: jest.fn().mockResolvedValue({ shop: { name: 'Test Shop' } }),
+            json: jest.fn().mockResolvedValue({ data: { shop: { name: 'Test Shop' } } }),
         };
         (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
 
@@ -22,7 +22,7 @@ describe('getShop', () => {
     it('should throw an error when the API call is unsuccessful', async () => {
         const mockResponse = {
             ok: false,
-            json: jest.fn().mockResolvedValue({ errors: { message: 'Error message' } }),
+            json: jest.fn().mockResolvedValue({ errors: 'Error message' }),
         };
         (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
 

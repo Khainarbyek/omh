@@ -4,8 +4,8 @@ import { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method === 'POST') {
-        const { originalProductId } = req.body;
-        const clonedProduct = await cloneProduct(originalProductId);
+        const { originalProductId, imageUrl } = req.body;
+        const clonedProduct = await cloneProduct(originalProductId, imageUrl);
         return res.status(200).json(clonedProduct);
     }
 }
