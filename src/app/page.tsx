@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { fabric } from "fabric";
 import { PixabayImage } from "@/types/pixabay_image";
+import { HiXCircle } from 'react-icons/hi2';
+
 
 export default function Home() {
     const [canvas, setCanvas] = useState<fabric.Canvas>();
@@ -29,7 +31,7 @@ export default function Home() {
                 c.remove(target); // Remove the object
                 c.requestRenderAll(); // Refresh the canvas
                 return true; // Return a boolean value
-            },
+            },
             render: (ctx, left, top) => {
                 const img = new Image();
                 img.src = "/icons/trash-icon.png"; // Replace with your trash icon path
@@ -156,13 +158,13 @@ export default function Home() {
 
     //TODO: Use the cloneProduct function cloneProduct("9692855959837");
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const cloneProduct = async (productId:string) => {
+    const cloneProduct = async (productId: string) => {
         const response = await fetch('/api/shopify', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ originalProductId: productId }),
         });
-        
+
         const data = await response.json();
         console.log('Cloned Product:', data);
     };
@@ -226,7 +228,7 @@ export default function Home() {
                     }),
                 });
                 const data = await response.json();
-                if(data.hits) setImages(data.hits);
+                if (data.hits) setImages(data.hits);
             } catch (error) {
                 console.error('Error fetching images:', error);
             }
@@ -262,7 +264,8 @@ export default function Home() {
             {/* Add Image Modal */}
             {isModalOpen && (
                 <div className="absolute top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center">
-                    <div className="bg-white p-4 rounded-md w-1/2 text-black">
+                    <div className="bg-white p-8 relative rounded-md w-1/2 z-10 max-h-[90vh] overflow-y-auto text-black">
+                        <HiXCircle size={36} onClick={() => setIsModalOpen(false)} className="absolute top-4 right-4 cursor-pointer" />
                         <h2 className="text-center mb-4">Select an Image</h2>
                         <div className="grid grid-cols-3 gap-4">
                             {images.map((image) => (
@@ -276,20 +279,15 @@ export default function Home() {
                                 </div>
                             ))}
                         </div>
-                        <button
-                            className="bg-red-500 text-white p-2 rounded-md mt-4"
-                            onClick={() => setIsModalOpen(false)}
-                        >
-                            Close
-                        </button>
                     </div>
                 </div>
             )}
 
             {/* Background Modal */}
             {isBackgroundModalOpen && (
-                <div className="absolute top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center">
-                    <div className="bg-white p-4 rounded-md w-1/2">
+                <div className="absolute top-0 left-0 z-10 w-full h-full bg-black bg-opacity-50 flex items-center justify-center">
+                    <div className="bg-white p-8 relative rounded-md w-1/2 z-10 max-h-[90vh] overflow-y-auto text-black">
+                        <HiXCircle size={36} onClick={() => setIsBackgroundModalOpen(false)} className="absolute top-4 right-4 cursor-pointer" />
                         <h2 className="text-center mb-4">Select a Background</h2>
                         <div className="grid grid-cols-3 gap-4">
                             {images.map((image) => (
@@ -314,12 +312,6 @@ export default function Home() {
                                 />
                             </label>
                         </div>
-                        <button
-                            className="bg-red-500 text-white p-2 rounded-md mt-4"
-                            onClick={() => setIsBackgroundModalOpen(false)}
-                        >
-                            Close
-                        </button>
                     </div>
                 </div>
             )}
