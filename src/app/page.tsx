@@ -4,18 +4,20 @@ import React, { useState, useEffect } from "react";
 import { fabric } from "fabric";
 import { PixabayImage } from "@/types/pixabay_image";
 import { HiXCircle } from 'react-icons/hi2';
-
+import Phones from '@/data/phones';
+import { Phone } from "@/types/phone";
 
 export default function Home() {
     const [canvas, setCanvas] = useState<fabric.Canvas>();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isBackgroundModalOpen, setIsBackgroundModalOpen] = useState(false);
     const [images, setImages] = useState<PixabayImage[]>([]);
+    const [selectedPhone, setSelectedPhone] = useState<Phone>(Phones[0]);
 
     useEffect(() => {
         const c = new fabric.Canvas("canvas", {
-            height: 610,
-            width: 296,
+            height: selectedPhone.height,
+            width: selectedPhone.width,
             backgroundColor: "#f5f5f5",
         });
 
@@ -43,9 +45,8 @@ export default function Home() {
 
         // Add the Trash Button to all objects
         fabric.Object.prototype.controls.deleteControl = deleteControl;
-
         // Load SVG Background
-        fabric.loadSVGFromURL('/iphone-296x608.svg', (objects, options) => {
+        fabric.loadSVGFromURL(selectedPhone.svg, (objects, options) => {
             let caseGroup;
             if (Array.isArray(objects)) {
                 // Handle older Fabric.js versions
@@ -54,7 +55,7 @@ export default function Home() {
                 // Handle newer Fabric.js versions
                 caseGroup = objects;
             }
-            caseGroup.scaleToWidth(296);
+            caseGroup.scaleToWidth(selectedPhone.width);
             caseGroup.set({ left: 0, top: 0, selectable: false });
             c.add(caseGroup);
         });
@@ -64,7 +65,7 @@ export default function Home() {
         return () => {
             c.dispose();
         };
-    }, []);
+    }, [selectedPhone]);
 
     const resetCanvas = () => {
         if (!canvas) return;
@@ -72,14 +73,14 @@ export default function Home() {
         canvas.clear();
         canvas.setBackgroundColor("#f5f5f5", canvas.renderAll.bind(canvas));
 
-        fabric.loadSVGFromURL('/iphone-296x608.svg', (objects, options) => {
+        fabric.loadSVGFromURL(selectedPhone.svg, (objects, options) => {
             let caseGroup;
             if (Array.isArray(objects)) {
                 caseGroup = fabric.util.groupSVGElements(objects, options);
             } else {
                 caseGroup = objects;
             }
-            caseGroup.scaleToWidth(296);
+            caseGroup.scaleToWidth(selectedPhone.width);
             caseGroup.set({ left: 0, top: 0, selectable: false });
             canvas.add(caseGroup);
         });
@@ -242,6 +243,22 @@ export default function Home() {
         <div className="w-full relative bg-white h-screen">
             <div className="relative">
                 <div className="absolute z-10 text-white">
+                <div className="my-2 text-black inline-block">
+                    <select value={selectedPhone?.id} onChange={(e) => {
+                        const selectedPhoneId = e.target.value;
+                        const phone = Phones.find((p: Phone) => p.id === selectedPhoneId);
+                        if(phone != undefined) {
+                            setSelectedPhone(phone);
+                        }
+                    }}>
+                        <option value="" disabled>Select a phone</option>
+                        {Phones.map((phone: Phone) => (
+                            <option key={phone.id} value={phone.id}>
+                                {phone.name}
+                            </option>
+                        ))}
+                    </select>
+                </div>
                     <button className="bg-blue-500 m-4 p-2 rounded-md" onClick={() => exportImage(canvas)}>Export image</button>
                     <button className="bg-blue-500 m-4 p-2 rounded-md" onClick={() => addText(canvas)}>Add Text</button>
                     <button className="bg-blue-500 m-4 p-2 rounded-md" onClick={() => addRect(canvas)}>Rectangle</button>
@@ -258,7 +275,9 @@ export default function Home() {
                     <button className="bg-blue-500 m-4 p-2 rounded-md" onClick={() => setIsBackgroundModalOpen(true)}>Background</button>
                     <button className="bg-red-500 m-4 p-2 rounded-md" onClick={resetCanvas}>Reset</button>
                 </div>
-                <canvas id="canvas" className="ml-20 mt-16 rounded-[50px]" />
+
+                <canvas id="canvas" className="ml-20 mt-16" />
+                
             </div>
 
             {/* Add Image Modal */}
