@@ -3,23 +3,26 @@
 import React, { useState, useEffect } from "react";
 import { fabric } from "fabric";
 import { PixabayImage } from "@/types/pixabay_image";
-import { HiXCircle } from 'react-icons/hi2';
+import { HiXCircle, HiArrowUturnLeft, HiArrowUturnRight } from 'react-icons/hi2';
 import Image from 'next/image';
 import Phones from '@/data/phones';
 import { Phone } from "@/types/phone";
 
 export default function Home() {
     const [canvas, setCanvas] = useState<fabric.Canvas>();
+    const [isResetCanvas, setIsResetCanvas] = useState<number>(0);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isBackgroundModalOpen, setIsBackgroundModalOpen] = useState(false);
     const [images, setImages] = useState<PixabayImage[]>([]);
     const [selectedPhone, setSelectedPhone] = useState<Phone>(Phones[0]);
+    const [history, setHistory] = useState<string[]>([]); // Canvas history
+    const [redoStack, setRedoStack] = useState<string[]>([]); // Redo history
 
     useEffect(() => {
+
         const c = new fabric.Canvas("canvas", {
             height: selectedPhone.height,
             width: selectedPhone.width,
-            // backgroundColor: "#f5f5f5",
         });
 
         // Custom Trash Button Control
@@ -37,7 +40,7 @@ export default function Home() {
             },
             render: (ctx, left, top) => {
                 const img = new window.Image();
-                img.src = "/icons/trash-icon.png"; // Replace with your trash icon path
+                img.src = "/icons/trash-icon.png";
                 img.onload = () => {
                     ctx.drawImage(img, left - 12, top - 12, 24, 24);
                 };
@@ -52,26 +55,52 @@ export default function Home() {
         return () => {
             c.dispose();
         };
-    }, [selectedPhone]);
+    }, [isResetCanvas]);
 
-    const resetCanvas = () => {
+    // Save the current state of the canvas in history
+    const saveCanvasState = () => {
+        if (!canvas) return;
+        const json = canvas.toJSON();
+        setHistory((prev) => [...prev, JSON.stringify(json)]);
+        setRedoStack([]); // Clear the redo stack whenever a new action is taken
+    };
+
+    const undo = () => {
         if (!canvas) return;
 
-        canvas.clear();
-        canvas.setBackgroundColor("#f5f5f5", canvas.renderAll.bind(canvas));
+        if (!history.length) {
+            canvas.clear();
+        } else {
+            const newHistory = [...history];
+            const lastState = newHistory.pop(); // Remove the latest state
+            setHistory(newHistory);
 
-        fabric.loadSVGFromURL(selectedPhone.svg, (objects, options) => {
-            let caseGroup;
-            if (Array.isArray(objects)) {
-                caseGroup = fabric.util.groupSVGElements(objects, options);
-            } else {
-                caseGroup = objects;
+            const redoState = JSON.stringify(canvas.toJSON()); // Save the current state for redo
+            setRedoStack((prev) => [...prev, redoState]);
+
+            if (lastState) {
+                canvas.loadFromJSON(lastState, () => {
+                    canvas.renderAll();
+                });
             }
-            caseGroup.scaleToWidth(selectedPhone.width);
-            caseGroup.scaleToHeight(selectedPhone.height);
-            caseGroup.set({ left: 0, top: 0, selectable: false });
-            canvas.add(caseGroup);
-        });
+        }
+    };
+
+    const redo = () => {
+        if (!redoStack.length || !canvas) return;
+
+        const newRedoStack = [...redoStack];
+        const nextState = newRedoStack.pop(); // Remove the next redo state
+        setRedoStack(newRedoStack);
+
+        const currentState = JSON.stringify(canvas.toJSON()); // Save the current state for undo
+        setHistory((prev) => [...prev, currentState]);
+
+        if (nextState) {
+            canvas.loadFromJSON(nextState, () => {
+                canvas.renderAll();
+            });
+        }
     };
 
     const setBackgroundFromImage = (url: string) => {
@@ -115,6 +144,7 @@ export default function Home() {
         });
 
         setIsBackgroundModalOpen(false);
+        saveCanvasState();
     };
 
     const setBackgroundFromUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -139,6 +169,7 @@ export default function Home() {
 
         reader.readAsDataURL(file);
         setIsBackgroundModalOpen(false);
+        saveCanvasState();
     };
 
     const addImage = (url: string) => {
@@ -151,6 +182,7 @@ export default function Home() {
         });
 
         setIsModalOpen(false);
+        saveCanvasState();
     };
 
     const uploadImage = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -169,6 +201,7 @@ export default function Home() {
         };
 
         reader.readAsDataURL(file);
+        saveCanvasState();
     };
 
     //TODO: Use the cloneProduct function cloneProduct("9692855959837");
@@ -211,6 +244,7 @@ export default function Home() {
 
         canvas.add(text);
         canvas.setActiveObject(text);
+        saveCanvasState();
     };
 
     const addRect = (canvas?: fabric.Canvas) => {
@@ -227,6 +261,7 @@ export default function Home() {
 
         canvas.add(rect);
         canvas.setActiveObject(rect);
+        saveCanvasState();
     };
 
     useEffect(() => {
@@ -256,22 +291,26 @@ export default function Home() {
     return (
         <div className="w-full relative bg-white h-screen">
             <div className="relative h-screen">
-                <div className="absolute z-10 text-white">
-                    <button className="bg-blue-500 m-4 p-2 rounded-md" onClick={() => exportImage(canvas)}>Export image</button>
-                    <button className="bg-blue-500 m-4 p-2 rounded-md" onClick={() => addText(canvas)}>Add Text</button>
-                    <button className="bg-blue-500 m-4 p-2 rounded-md" onClick={() => addRect(canvas)}>Rectangle</button>
-                    <button className="bg-blue-500 m-4 p-2 rounded-md" onClick={() => setIsModalOpen(true)}>Add Image</button>
-                    <label className="bg-blue-500 m-4 p-2 rounded-md cursor-pointer inline-block">
-                        Upload Image
-                        <input
-                            type="file"
-                            accept="image/*"
-                            style={{ display: 'none' }}
-                            onChange={uploadImage}
-                        />
-                    </label>
-                    <button className="bg-blue-500 m-4 p-2 rounded-md" onClick={() => setIsBackgroundModalOpen(true)}>Background</button>
-                    <button className="bg-red-500 m-4 p-2 rounded-md" onClick={resetCanvas}>Reset</button>
+                <div className="absolute right-0 z-10 text-white">
+                    <div className="flex flex-col place-items-center">
+                        <button className="bg-blue-500 inline-block m-4 p-2 rounded-md" onClick={undo} title="Undo"><HiArrowUturnLeft /></button>
+                        <button className="bg-blue-500 m-4 p-2 rounded-md" onClick={redo}><HiArrowUturnRight /></button>
+                        <button className="bg-blue-500 m-4 p-2 rounded-md" onClick={() => exportImage(canvas)}>Export image</button>
+                        <button className="bg-blue-500 m-4 p-2 rounded-md" onClick={() => addText(canvas)}>Add Text</button>
+                        <button className="bg-blue-500 m-4 p-2 rounded-md" onClick={() => addRect(canvas)}>Rectangle</button>
+                        <button className="bg-blue-500 m-4 p-2 rounded-md" onClick={() => setIsModalOpen(true)}>Add Image</button>
+                        <label className="bg-blue-500 m-4 p-2 rounded-md cursor-pointer inline-block">
+                            Upload Image
+                            <input
+                                type="file"
+                                accept="image/*"
+                                style={{ display: 'none' }}
+                                onChange={uploadImage}
+                            />
+                        </label>
+                        <button className="bg-blue-500 m-4 p-2 rounded-md" onClick={() => setIsBackgroundModalOpen(true)}>Background</button>
+                        <button className="bg-red-500 m-4 p-2 rounded-md" onClick={() => setIsResetCanvas(isResetCanvas + 1)}>Reset</button>
+                    </div>
                 </div>
 
                 <div className="ml-4 md:ml-8 my-4 inline-block">
@@ -293,6 +332,7 @@ export default function Home() {
                             const phone = Phones.find((p: Phone) => p.id === selectedPhoneId);
                             if (phone != undefined) {
                                 setSelectedPhone(phone);
+                                setIsResetCanvas(isResetCanvas + 1);
                             }
                         }}>
                             <option value="" disabled>Select a phone</option>
