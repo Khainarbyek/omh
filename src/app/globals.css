@@ -19,3 +19,15 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.no-scroll {
+  overflow: hidden;
+}
+
+.action-button {
+  padding: 8px;
+  border-radius: 0.75rem;
+}
+.action-button:hover, .action-button:focus {
+  background-color: rgb(255 255 255 / 0.25);
+}
