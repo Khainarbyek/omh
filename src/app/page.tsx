@@ -1,64 +1,85 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { fabric } from "fabric";
 import { PixabayImage } from "@/types/pixabay_image";
-import { HiXCircle, HiArrowUturnLeft, HiArrowUturnRight } from 'react-icons/hi2';
+import { HiXCircle, HiArrowUturnLeft, HiArrowUturnRight, HiArrowDownOnSquare, HiMiniTrash, HiArrowUpCircle, HiSquare3Stack3D } from 'react-icons/hi2';
 import Image from 'next/image';
 import Phones from '@/data/phones';
 import { Phone } from "@/types/phone";
 import { useHistory } from '@/utils/historyUtils';
+import { Modal } from '@/components/modal';
 import { useImageUtils } from '@/utils/imageUtils';
 import { Action } from "@/types/action";
+import { AiFillMobile, AiOutlineFontSize } from "react-icons/ai";
+import { IoImageSharp } from "react-icons/io5";
+import { useTextUtils } from "@/utils/textUtils";
 
 export default function Home() {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const fabricCanvasRef = useRef<fabric.Canvas | null>(null);
     const [canvas, setCanvas] = useState<fabric.Canvas | undefined>();
     const [isResetCanvas, setIsResetCanvas] = useState<number>(0);
     const [images, setImages] = useState<PixabayImage[]>([]);
     const [selectedPhone, setSelectedPhone] = useState<Phone>(Phones[0]);
     const [openPopup, setOpenPopup] = useState<Action>('');
     const { saveCanvasState, undo, redo } = useHistory();
+    const [selectedImageTab, setSelectedImageTab] = useState<number>(0);
 
     useEffect(() => {
+        if (canvasRef.current) {
+            const c = new fabric.Canvas(canvasRef.current, {
+                height: selectedPhone.height,
+                width: selectedPhone.width,
+            });
 
-        const c = new fabric.Canvas("canvas", {
-            height: selectedPhone.height,
-            width: selectedPhone.width,
-        });
+            fabricCanvasRef.current = c;
 
-        // Custom Trash Button Control
-        const deleteControl = new fabric.Control({
-            x: 0.5,
-            y: -0.5,
-            offsetX: 10,
-            offsetY: -10,
-            cursorStyle: "pointer",
-            mouseUpHandler: (_, transform) => {
-                const target = transform.target;
-                c.remove(target); // Remove the object
-                c.requestRenderAll(); // Refresh the canvas
-                return true; // Return a boolean value
-            },
-            render: (ctx, left, top) => {
-                const img = new window.Image();
-                img.src = "/icons/trash-icon.png";
-                img.onload = () => {
-                    ctx.drawImage(img, left - 12, top - 12, 24, 24);
-                };
-            },
-        });
+            // Custom Trash Button Control
+            const deleteControl = new fabric.Control({
+                x: 0.5,
+                y: -0.5,
+                offsetX: 10,
+                offsetY: -10,
+                cursorStyle: "pointer",
+                mouseUpHandler: (_, transform) => {
+                    const target = transform.target;
+                    c.remove(target); // Remove the object
+                    c.requestRenderAll(); // Refresh the canvas
+                    return true; // Return a boolean value
+                },
+                render: (ctx, left, top) => {
+                    const img = new window.Image();
+                    img.src = "/icons/trash-icon.png";
+                    img.onload = () => {
+                        ctx.drawImage(img, left - 12, top - 12, 24, 24);
+                    };
+                },
+            });
 
-        // Add the Trash Button to all objects
-        fabric.Object.prototype.controls.deleteControl = deleteControl;
+            // Add the Trash Button to all objects
+            fabric.Object.prototype.controls.deleteControl = deleteControl;
+            setCanvas(c);
 
-        setCanvas(c);
+            // // Listen for mouse down events on the canvas
+            // c.on('mouse:down', function (e) {
+            //     // Check if an object is clicked
+            //     console.log(e);
+            //     if (!e.target) {
+            //         // No object was clicked, discard the active object
+            //         c.discardActiveObject();
+            //         c.requestRenderAll();
+            //     }
+            // });
 
-        return () => {
-            c.dispose();
-        };
+            return () => {
+                c.dispose();
+            };
+        }
     }, [isResetCanvas, selectedPhone]);
 
     const { setBackgroundFromImage, setBackgroundFromUpload, uploadImage, exportImage, addImage } = useImageUtils();
+    const { addText } = useTextUtils();
 
     //TODO: Use the cloneProduct function cloneProduct("9692855959837");
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -73,37 +94,22 @@ export default function Home() {
         console.log('Cloned Product:', data);
     };
 
-    const addText = (canvas?: fabric.Canvas) => {
-        if (!canvas) return;
+    // const addRect = (canvas?: fabric.Canvas) => {
+    //     if (!canvas) return;
 
-        const text = new fabric.IText('Custom Text', {
-            left: 100,
-            top: 100,
-            fontSize: 20,
-            fill: '#000',
-        });
+    //     const rect = new fabric.Rect({
+    //         width: 100,
+    //         height: 100,
+    //         fill: 'green',
+    //         stroke: 'blue',
+    //         left: 50,
+    //         top: 50,
+    //     });
 
-        canvas.add(text);
-        canvas.setActiveObject(text);
-        saveCanvasState(canvas);
-    };
-
-    const addRect = (canvas?: fabric.Canvas) => {
-        if (!canvas) return;
-
-        const rect = new fabric.Rect({
-            width: 100,
-            height: 100,
-            fill: 'green',
-            stroke: 'blue',
-            left: 50,
-            top: 50,
-        });
-
-        canvas.add(rect);
-        canvas.setActiveObject(rect);
-        saveCanvasState(canvas);
-    };
+    //     canvas.add(rect);
+    //     canvas.setActiveObject(rect);
+    //     saveCanvasState(canvas);
+    // };
 
     useEffect(() => {
         const fetchImages = async () => {
@@ -129,31 +135,9 @@ export default function Home() {
     }, []);
 
     return (
-        <div className="w-full relative bg-white h-screen">
+        <div className="w-full h-full relative bg-gray-200 min-h-screen">
             <div className="relative h-screen">
-                <div className="absolute right-0 z-10 text-white">
-                    <div className="flex flex-col place-items-center">
-                        <button className="bg-blue-500 inline-block m-4 p-2 rounded-md" onClick={() => undo(canvas)} title="Undo"><HiArrowUturnLeft /></button>
-                        <button className="bg-blue-500 m-4 p-2 rounded-md" onClick={() => redo(canvas)}><HiArrowUturnRight /></button>
-                        <button className="bg-blue-500 m-4 p-2 rounded-md" onClick={() => exportImage(canvas)}>Export image</button>
-                        <button className="bg-blue-500 m-4 p-2 rounded-md" onClick={() => addText(canvas)}>Add Text</button>
-                        <button className="bg-blue-500 m-4 p-2 rounded-md" onClick={() => addRect(canvas)}>Rectangle</button>
-                        <button className="bg-blue-500 m-4 p-2 rounded-md" onClick={() => setOpenPopup('open_image_popup')}>Add Image</button>
-                        <label className="bg-blue-500 m-4 p-2 rounded-md cursor-pointer inline-block">
-                            Upload Image
-                            <input
-                                type="file"
-                                accept="image/*"
-                                style={{ display: 'none' }}
-                                onChange={(e) => uploadImage(canvas, e, () => saveCanvasState(canvas))}
-                            />
-                        </label>
-                        <button className="bg-blue-500 m-4 p-2 rounded-md" onClick={() => setOpenPopup('open_background_image_popup')}>Background</button>
-                        <button className="bg-red-500 m-4 p-2 rounded-md" onClick={() => setIsResetCanvas(isResetCanvas + 1)}>Reset</button>
-                    </div>
-                </div>
-
-                <div className="ml-4 md:ml-8 my-4 inline-block">
+                <div className="ml-16 my-4 inline-block relative">
                     <div className="mobileFrame">
                         <Image
                             style={{ position: "absolute", zIndex: 20, pointerEvents: 'none' }}
@@ -163,92 +147,172 @@ export default function Home() {
                             alt=""
                             priority={false} />
                     </div>
-                    <canvas id="canvas" className="rounded-[50px]" />
-                </div>
-                <div className="absolute bottom-4 left-4">
-                    <div className="my-2 text-black inline-block">
-                        <select value={selectedPhone?.id} onChange={(e) => {
-                            const selectedPhoneId = e.target.value;
-                            const phone = Phones.find((p: Phone) => p.id === selectedPhoneId);
-                            if (phone != undefined) {
-                                setSelectedPhone(phone);
-                                setIsResetCanvas(isResetCanvas + 1);
-                            }
-                        }}>
-                            <option value="" disabled>Select a phone</option>
-                            {Phones.map((phone: Phone) => (
-                                <option key={phone.id} value={phone.id}>
-                                    {phone.name}
-                                </option>
-                            ))}
-                        </select>
+                    <div className="absolute left-0 -ml-14 z-10 text-white">
+                        <div className="flex flex-col place-items-center gap-4">
+                            <div className="flex flex-col gap-2 rounded-xl p-2 bg-black">
+                                <button className="action-button" onClick={() => undo(canvas)} title="Undo"><HiArrowUturnLeft /></button>
+                                <button className="action-button" onClick={() => redo(canvas)}><HiArrowUturnRight /></button>
+                            </div>
+                            <div className="flex flex-col gap-2 bg-black rounded-xl p-2">
+                                <button className="action-button" onClick={() => addText(canvas, () => saveCanvasState(canvas))}><AiOutlineFontSize /></button>
+                                <button className="action-button" onClick={() => setOpenPopup('open_image_popup')}><IoImageSharp /></button>
+                                <button className="action-button" onClick={() => setOpenPopup('')}><HiSquare3Stack3D /></button>
+                                <button className="action-button" onClick={() => setOpenPopup('open_background_image_popup')}><AiFillMobile /></button>
+                            </div>
+
+                            <div className="flex flex-col gap-2 bg-black rounded-xl p-2">
+                                <button className="action-button" onClick={() => exportImage(canvas)}><HiArrowDownOnSquare /></button>
+                            </div>
+
+                            <div className="flex flex-col gap-2 bg-red-500 rounded-xl p-2">
+                                <button className="action-button" onClick={() => setOpenPopup('open_ask_popup')}><HiMiniTrash /></button>
+                            </div>
+                        </div>
                     </div>
+                    <div className="absolute bottom-0 -mb-16 left-4 right-4 text-center">
+                        <div className="my-2 text-black inline-block relative">
+                            <select
+                                className="px-4 py-2 rounded-lg"
+                                value={selectedPhone?.id} onChange={(e) => {
+                                    const selectedPhoneId = e.target.value;
+                                    const phone = Phones.find((p: Phone) => p.id === selectedPhoneId);
+                                    if (phone != undefined) {
+                                        setSelectedPhone(phone);
+                                        setIsResetCanvas(isResetCanvas + 1);
+                                    }
+                                }}>
+                                <option value="" disabled>Select a phone</option>
+                                {Phones.map((phone: Phone) => (
+                                    <option key={phone.id} value={phone.id}>
+                                        {phone.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+                    <canvas ref={canvasRef} id="canvas" className="rounded-[50px]" />
                 </div>
             </div>
 
-            {/* Add Image Modal */}
-            {openPopup === 'open_image_popup' && (
-                <div className="absolute top-0 left-0 z-50 w-full h-full bg-black bg-opacity-50 flex items-center justify-center">
-                    <div className="bg-white p-8 relative rounded-md w-1/2 z-10 max-h-[90vh] overflow-y-auto text-black">
-                        <HiXCircle size={36} onClick={() => setOpenPopup('')} className="absolute top-4 right-4 cursor-pointer" />
-                        <h2 className="text-center mb-4">Select an Image</h2>
-                        <div className="grid grid-cols-3 gap-4">
-                            {images.map((image) => (
-                                <div
-                                    key={image.id}
-                                    className="cursor-pointer border p-2 hover:shadow-lg"
-                                    onClick={() => addImage(canvas, image.largeImageURL, () => {
-                                        setOpenPopup('');
-                                        saveCanvasState(canvas);
-                                    })}
-                                >
-                                    <img src={image.webformatURL} alt={image.tags} className="w-full h-auto" />
-                                    <p className="text-center mt-2">{image.tags}</p>
-                                </div>
-                            ))}
-                        </div>
+            <Modal isOpen={openPopup === 'open_ask_popup'} onClose={() => setOpenPopup('')}>
+                <div className="max-w-md relative p-4">
+                    <HiXCircle size={36} onClick={() => setOpenPopup('')} className="absolute -mt-2 -mr-2 top-0 right-0 cursor-pointer" />
+                    <h1 className="text-lg font-bold">Are you sure you want to reset the design?</h1>
+                    <p>This action will clear all the designs you have created. You will need to start from scratch. Are you sure you want to proceed?</p>
+                    <div className="flex flex-row gap-8 mt-4 place-content-center">
+                        <button className="border px-6 py-2 rounded-md border-black" onClick={() => setOpenPopup('')}>Cancel</button>
+                        <button className="border px-6 py-2 rounded-md border-red-500 text-red-500" onClick={() => {
+                            setOpenPopup('');
+                            setIsResetCanvas(isResetCanvas + 1);
+                        }}>Reset</button>
                     </div>
                 </div>
-            )}
+            </Modal>
 
-            {/* Background Modal */}
-            {openPopup === 'open_background_image_popup' && (
-                <div className="absolute top-0 left-0 z-50 w-full h-full bg-black bg-opacity-50 flex items-center justify-center">
-                    <div className="bg-white p-8 relative rounded-md w-1/2 z-10 max-h-[90vh] overflow-y-auto text-black">
-                        <HiXCircle size={36} onClick={() => setOpenPopup('')} className="absolute top-4 right-4 cursor-pointer" />
-                        <h2 className="text-center mb-4">Select a Background</h2>
-                        <div className="grid grid-cols-3 gap-4">
-                            {images.map((image) => (
-                                <div
-                                    key={image.id}
-                                    className="cursor-pointer border p-2 hover:shadow-lg"
-                                    onClick={() => setBackgroundFromImage(canvas, image.largeImageURL, () => {
-                                        setOpenPopup('');
-                                        saveCanvasState(canvas);
-                                    })}
-                                >
-                                    <img src={image.webformatURL} alt={image.tags} className="w-full h-auto" />
-                                    <p className="text-center mt-2">{image.tags}</p>
-                                </div>
-                            ))}
-                        </div>
-                        <div className="mt-4">
-                            <label className="bg-blue-500 text-white p-2 rounded-md cursor-pointer inline-block">
-                                Upload
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    style={{ display: 'none' }}
-                                    onChange={(e) => setBackgroundFromUpload(canvas, e, () => {
-                                        setOpenPopup('');
-                                        saveCanvasState(canvas);
-                                    })}
-                                />
-                            </label>
-                        </div>
+            <Modal isOpen={openPopup === 'open_image_popup'} onClose={() => setOpenPopup('')}>
+                <div className="max-w-4xl min-w-[70vw] relative">
+                    <div className="p-4 flex flex-row gap-2">
+                        <HiXCircle size={36} onClick={() => setOpenPopup('')} className="absolute -mt-2 -mr-2 top-0 right-0 cursor-pointer" />
+                        <button onClick={() => setSelectedImageTab(0)} className={`border px-3 p-1 rounded-md ${selectedImageTab === 0 && 'bg-black text-white'}`}>Upload an Image</button>
+                        <button onClick={() => setSelectedImageTab(1)} className={`border px-3 p-1 rounded-md ${selectedImageTab === 1 && 'bg-black text-white'}`}>Select an Image</button>
                     </div>
+                    {
+                        selectedImageTab === 0 && (
+                            <div className="max-h-[70vh] overflow-y-auto">
+                                <div className="inline-block mx-auto min-h-[70vh]">
+                                    <label className="border-2 border-black border-dashed m-4 p-8 rounded-md cursor-pointer flex flex-col place-items-center">
+                                        <HiArrowUpCircle size={48} />
+                                        Upload an Image
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            style={{ display: 'none' }}
+                                            onChange={(e) => uploadImage(canvas, e, () => {
+                                                saveCanvasState(canvas);
+                                                setOpenPopup('');
+                                            })}
+                                        />
+                                    </label>
+                                </div>
+                            </div>
+                        )
+                    }
+                    {
+                        selectedImageTab === 1 && (
+                            <div className="max-h-[70vh] overflow-y-auto">
+                                <div className="grid grid-cols-3 md:grid-cols-4 gap-4">
+                                    {images.map((image) => (
+                                        <div
+                                            key={image.id}
+                                            className="cursor-pointer border p-2 hover:shadow-lg"
+                                            onClick={() => addImage(canvas, image.largeImageURL, () => {
+                                                setOpenPopup('');
+                                                saveCanvasState(canvas);
+                                            })}
+                                        >
+                                            <img src={image.webformatURL} alt={image.tags} className="w-full h-auto" />
+                                            <p className="text-center mt-2">{image.tags}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )
+                    }
                 </div>
-            )}
+            </Modal>
+
+            <Modal isOpen={openPopup === 'open_background_image_popup'} onClose={() => setOpenPopup('')}>
+                <div className="max-w-4xl min-w-[70vw] relative">
+                    <div className="p-4 flex flex-row gap-2">
+                        <HiXCircle size={36} onClick={() => setOpenPopup('')} className="absolute -mt-2 -mr-2 top-0 right-0 cursor-pointer" />
+                        <button onClick={() => setSelectedImageTab(0)} className={`border px-3 p-1 rounded-md ${selectedImageTab === 0 && 'bg-black text-white'}`}>Upload Background Image</button>
+                        <button onClick={() => setSelectedImageTab(1)} className={`border px-3 p-1 rounded-md ${selectedImageTab === 1 && 'bg-black text-white'}`}>Select Background Image</button>
+                    </div>
+                    {
+                        selectedImageTab === 0 && (
+                            <div className="max-h-[70vh] overflow-y-auto">
+                                <div className="inline-block mx-auto min-h-[70vh]">
+                                    <label className="border-2 border-black border-dashed m-4 p-8 rounded-md cursor-pointer flex flex-col place-items-center">
+                                        <HiArrowUpCircle size={48} />
+                                        Upload an Image
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            style={{ display: 'none' }}
+                                            onChange={(e) => setBackgroundFromUpload(canvas, e, () => {
+                                                saveCanvasState(canvas);
+                                                setOpenPopup('');
+                                            })}
+                                        />
+                                    </label>
+                                </div>
+                            </div>
+                        )
+                    }
+                    {
+                        selectedImageTab === 1 && (
+                            <div className="max-h-[70vh] overflow-y-auto">
+                                <div className="grid grid-cols-3 md:grid-cols-4 gap-4">
+                                    {images.map((image) => (
+                                        <div
+                                            key={image.id}
+                                            className="cursor-pointer border p-2 hover:shadow-lg"
+                                            onClick={() => setBackgroundFromImage(canvas, image.largeImageURL, () => {
+                                                setOpenPopup('');
+                                                saveCanvasState(canvas);
+                                            })}
+                                        >
+                                            <img src={image.webformatURL} alt={image.tags} className="w-full h-auto" />
+                                            <p className="text-center mt-2">{image.tags}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )
+                    }
+                </div>
+            </Modal>
+
         </div>
     );
 }

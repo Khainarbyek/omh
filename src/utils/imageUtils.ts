@@ -54,12 +54,37 @@ export const useImageUtils = () => {
         reader.onload = () => {
             const result = reader.result as string;
             fabric.Image.fromURL(result, (img) => {
+                const canvasHeight = canvas.getHeight();
+                const canvasWidth = canvas.getWidth();
+
+                const imgHeight = img.getScaledHeight();
+                const imgWidth = img.getScaledWidth();
+
+                const canvasAspect = canvasWidth / canvasHeight;
+                const imgAspect = imgWidth / imgHeight;
+
+                let scaleX = 1;
+                let scaleY = 1;
+
+                // Scale image proportionally to cover the canvas
+                if (canvasAspect >= imgAspect) {
+                    // Canvas is wider, scale by height
+                    scaleX = scaleY = canvasWidth / imgWidth;
+                } else {
+                    // Canvas is taller, scale by width
+                    scaleX = scaleY = canvasHeight / imgHeight;
+                }
+
                 canvas.setBackgroundImage(
                     img,
                     canvas.renderAll.bind(canvas),
                     {
-                        scaleX: canvas.width! / img.width!,
-                        scaleY: canvas.height! / img.height!
+                        originX: "center",
+                        originY: "center",
+                        top: canvasHeight / 2,
+                        left: canvasWidth / 2,
+                        scaleX: scaleX,
+                        scaleY: scaleY,
                     }
                 );
             });
@@ -73,8 +98,8 @@ export const useImageUtils = () => {
         if (!canvas) return;
 
         fabric.Image.fromURL(url, (img) => {
-            img.scaleToWidth(100);
-            img.set({ left: 100, top: 100 });
+            img.scaleToWidth(160);
+            img.set({ left: 60, top: 220 });
             canvas.add(img);
         });
         callback()
@@ -89,9 +114,10 @@ export const useImageUtils = () => {
         reader.onload = () => {
             const result = reader.result as string;
             fabric.Image.fromURL(result, (img) => {
-                img.scaleToWidth(100);
-                img.set({ left: 100, top: 100 });
+                img.scaleToWidth(160);
+                img.set({ left: 60, top: 220 });
                 canvas.add(img);
+                canvas.setActiveObject(img);
             });
         };
 
