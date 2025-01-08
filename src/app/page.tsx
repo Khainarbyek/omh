@@ -94,22 +94,22 @@ export default function Home() {
         console.log('Cloned Product:', data);
     };
 
-    const addRect = (canvas?: fabric.Canvas) => {
-        if (!canvas) return;
+    // const addRect = (canvas?: fabric.Canvas) => {
+    //     if (!canvas) return;
 
-        const rect = new fabric.Rect({
-            width: 100,
-            height: 100,
-            fill: 'green',
-            stroke: 'blue',
-            left: 50,
-            top: 50,
-        });
+    //     const rect = new fabric.Rect({
+    //         width: 100,
+    //         height: 100,
+    //         fill: 'green',
+    //         stroke: 'blue',
+    //         left: 50,
+    //         top: 50,
+    //     });
 
-        canvas.add(rect);
-        canvas.setActiveObject(rect);
-        saveCanvasState(canvas);
-    };
+    //     canvas.add(rect);
+    //     canvas.setActiveObject(rect);
+    //     saveCanvasState(canvas);
+    // };
 
     useEffect(() => {
         const fetchImages = async () => {
