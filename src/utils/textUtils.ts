@@ -14,5 +14,13 @@ export const useTextUtils = () => {
         callback();
     };
 
-    return { addText };
+    // Update text properties
+    const updateTextProperty = (canvas: fabric.Canvas | undefined, iText: fabric.IText, property: keyof fabric.IText, value: any) => {
+        if (iText && canvas) {
+            iText.set(property, value);
+            canvas.requestRenderAll();
+        }
+    };
+
+    return { addText, updateTextProperty };
 };

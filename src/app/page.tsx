@@ -15,15 +15,24 @@ import { AiFillMobile, AiOutlineFontSize } from "react-icons/ai";
 import { IoImageSharp } from "react-icons/io5";
 import { useTextUtils } from "@/utils/textUtils";
 export default function Home() {
+
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const fabricCanvasRef = useRef<fabric.Canvas | null>(null);
     const [canvas, setCanvas] = useState<fabric.Canvas | undefined>();
     const [isResetCanvas, setIsResetCanvas] = useState<number>(0);
+
+    const { addText, updateTextProperty } = useTextUtils();
+    const { setBackgroundFromImage, setBackgroundFromUpload, uploadImage, exportImage, addImage } = useImageUtils();
+
     const [images, setImages] = useState<PixabayImage[]>([]);
     const [selectedPhone, setSelectedPhone] = useState<Phone>(Phones[0]);
     const [openPopup, setOpenPopup] = useState<Action>('');
     const { saveCanvasState, undo, redo } = useHistory();
     const [selectedImageTab, setSelectedImageTab] = useState<number>(0);
+
+    const [selectedText, setSelectedText] = useState<fabric.IText | null>(null);
+    const [fontFamily, setFontFamily] = useState<string>("Arial");
+    const [fontColor, setFontColor] = useState<string>("#000000");
 
     useEffect(() => {
         if (canvasRef.current) {
@@ -63,7 +72,6 @@ export default function Home() {
             // Add the Trash Button to all objects
             fabric.Object.prototype.controls.deleteControl = deleteControl;
             fabric.Object.prototype.controls.customControl = deleteControl;
-            setCanvas(c);
 
             c.on('object:added', function (e) {
                 if (e.target) {
@@ -72,14 +80,29 @@ export default function Home() {
                 }
             });
 
+            // Handle selection events
+            c.on("selection:created", (e) => {
+                const activeObject = c.getActiveObject();
+                if (activeObject && activeObject.type === "i-text") {
+                    const textObject = activeObject as fabric.IText;
+                    setSelectedText(textObject);
+                    setFontFamily(textObject.fontFamily || "Arial");
+                    setFontColor(textObject.fill as string || "#000000");
+                }
+            });
+
+            c.on("selection:cleared", () => {
+                setSelectedText(null);
+            });
+
+            setCanvas(c);
+
             return () => {
                 c.dispose();
             };
         }
     }, [isResetCanvas]);
 
-    const { setBackgroundFromImage, setBackgroundFromUpload, uploadImage, exportImage, addImage } = useImageUtils();
-    const { addText } = useTextUtils();
 
     //TODO: Use the cloneProduct function cloneProduct("9692855959837");
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -174,6 +197,49 @@ export default function Home() {
                     </div>
                     <canvas ref={canvasRef} id="canvas" className="rounded-[50px]" />
                 </div>
+                {/* Popup Text Editor */}
+                {selectedText && (
+                    <div
+                        className="bg-gray-500 rounded-md"
+                        style={{
+                            position: "absolute",
+                            top: (selectedText.top || 0) + 60,
+                            left: selectedText.left || 0,
+                            padding: "10px",
+                            zIndex: 1000,
+                        }}
+                    >
+                        <div>
+                            <label>
+                                <select
+                                    value={fontFamily}
+                                    onChange={(e) => {
+                                        setFontFamily(e.target.value);
+                                        updateTextProperty(canvas, selectedText, "fontFamily", e.target.value);
+                                    }}
+                                >
+                                    <option value="Arial">Arial</option>
+                                    <option value="Georgia">Georgia</option>
+                                    <option value="Times New Roman">Times New Roman</option>
+                                    <option value="Verdana">Verdana</option>
+                                </select>
+                            </label>
+                        </div>
+                        <div>
+                            <label>
+                                Color:{" "}
+                                <input
+                                    type="color"
+                                    value={fontColor}
+                                    onChange={(e) => {
+                                        setFontColor(e.target.value);
+                                        updateTextProperty(canvas, selectedText, "fill", e.target.value);
+                                    }}
+                                />
+                            </label>
+                        </div>
+                    </div>
+                )}
             </div>
 
             <Modal isOpen={openPopup === 'open_ask_popup'} onClose={() => setOpenPopup('')}>
