@@ -6,14 +6,11 @@ export const useTextUtils = () => {
         if (!canvas) return;
 
         const text = new fabric.IText('Hello World', {
-            left: 80,
-            top: 250,
             fontSize: 24,
             fill: '#000',
         });
 
         canvas.add(text);
-        canvas.setActiveObject(text);
         callback();
     };
 

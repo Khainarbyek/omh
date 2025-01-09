@@ -301,14 +301,11 @@ export default function Product() {
         if (!canvas) return;
 
         const text = new fabric.IText('Custom Text', {
-            left: 100,
-            top: 100,
             fontSize: 20,
             fill: '#000',
         });
 
         canvas.add(text);
-        canvas.setActiveObject(text);
     };
 
     const addRect = (canvas?: fabric.Canvas) => {
@@ -324,7 +321,6 @@ export default function Product() {
         });
 
         canvas.add(rect);
-        canvas.setActiveObject(rect);
     };
 
     // useEffect(() => {

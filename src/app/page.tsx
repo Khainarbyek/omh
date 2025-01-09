@@ -14,7 +14,6 @@ import { Action } from "@/types/action";
 import { AiFillMobile, AiOutlineFontSize } from "react-icons/ai";
 import { IoImageSharp } from "react-icons/io5";
 import { useTextUtils } from "@/utils/textUtils";
-
 export default function Home() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const fabricCanvasRef = useRef<fabric.Canvas | null>(null);
@@ -28,9 +27,13 @@ export default function Home() {
 
     useEffect(() => {
         if (canvasRef.current) {
+            const s = window.innerHeight / 1008 * 0.9;
+            const height = 905 * s;
+            const width = height / selectedPhone.height * selectedPhone.width;
+
             const c = new fabric.Canvas(canvasRef.current, {
-                height: selectedPhone.height,
-                width: selectedPhone.width,
+                height: height,
+                width: width
             });
 
             fabricCanvasRef.current = c;
@@ -50,7 +53,7 @@ export default function Home() {
                 },
                 render: (ctx, left, top) => {
                     const img = new window.Image();
-                    img.src = "/icons/trash-icon.png";
+                    img.src = '/icons/trash.svg';
                     img.onload = () => {
                         ctx.drawImage(img, left - 12, top - 12, 24, 24);
                     };
@@ -59,24 +62,21 @@ export default function Home() {
 
             // Add the Trash Button to all objects
             fabric.Object.prototype.controls.deleteControl = deleteControl;
+            fabric.Object.prototype.controls.customControl = deleteControl;
             setCanvas(c);
 
-            // // Listen for mouse down events on the canvas
-            // c.on('mouse:down', function (e) {
-            //     // Check if an object is clicked
-            //     console.log(e);
-            //     if (!e.target) {
-            //         // No object was clicked, discard the active object
-            //         c.discardActiveObject();
-            //         c.requestRenderAll();
-            //     }
-            // });
+            c.on('object:added', function (e) {
+                if (e.target) {
+                    c.setActiveObject(e.target);
+                    c.centerObject(e.target);
+                }
+            });
 
             return () => {
                 c.dispose();
             };
         }
-    }, [isResetCanvas, selectedPhone]);
+    }, [isResetCanvas]);
 
     const { setBackgroundFromImage, setBackgroundFromUpload, uploadImage, exportImage, addImage } = useImageUtils();
     const { addText } = useTextUtils();
@@ -93,23 +93,6 @@ export default function Home() {
         const data = await response.json();
         console.log('Cloned Product:', data);
     };
-
-    // const addRect = (canvas?: fabric.Canvas) => {
-    //     if (!canvas) return;
-
-    //     const rect = new fabric.Rect({
-    //         width: 100,
-    //         height: 100,
-    //         fill: 'green',
-    //         stroke: 'blue',
-    //         left: 50,
-    //         top: 50,
-    //     });
-
-    //     canvas.add(rect);
-    //     canvas.setActiveObject(rect);
-    //     saveCanvasState(canvas);
-    // };
 
     useEffect(() => {
         const fetchImages = async () => {
@@ -141,8 +124,8 @@ export default function Home() {
                     <div className="mobileFrame">
                         <Image
                             style={{ position: "absolute", zIndex: 20, pointerEvents: 'none' }}
-                            width={selectedPhone.width}
-                            height={selectedPhone.height}
+                            width={fabricCanvasRef?.current?.getWidth() || selectedPhone.width}
+                            height={fabricCanvasRef?.current?.getHeight() || selectedPhone.height}
                             src={selectedPhone.svg}
                             alt=""
                             priority={false} />
@@ -178,7 +161,6 @@ export default function Home() {
                                     const phone = Phones.find((p: Phone) => p.id === selectedPhoneId);
                                     if (phone != undefined) {
                                         setSelectedPhone(phone);
-                                        setIsResetCanvas(isResetCanvas + 1);
                                     }
                                 }}>
                                 <option value="" disabled>Select a phone</option>
