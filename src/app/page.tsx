@@ -6,14 +6,18 @@ import { PixabayImage } from "@/types/pixabay_image";
 import { HiXCircle, HiArrowUturnLeft, HiArrowUturnRight, HiArrowDownOnSquare, HiMiniTrash, HiArrowUpCircle, HiSquare3Stack3D } from 'react-icons/hi2';
 import Image from 'next/image';
 import Phones from '@/data/phones';
+import Fonts from '@/data/fonts';
 import { Phone } from "@/types/phone";
 import { useHistory } from '@/utils/historyUtils';
 import { Modal } from '@/components/modal';
 import { useImageUtils } from '@/utils/imageUtils';
 import { Action } from "@/types/action";
 import { AiFillMobile, AiOutlineFontSize } from "react-icons/ai";
-import { IoImageSharp } from "react-icons/io5";
+import { IoColorFill, IoImageSharp } from "react-icons/io5";
 import { useTextUtils } from "@/utils/textUtils";
+import { FaA, FaBold } from "react-icons/fa6";
+import { BottomSheet } from "@/components/bottomsheet";
+import "../../public/fonts.css"
 export default function Home() {
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -30,9 +34,11 @@ export default function Home() {
     const { saveCanvasState, undo, redo } = useHistory();
     const [selectedImageTab, setSelectedImageTab] = useState<number>(0);
 
+    const colorPickerRef = useRef<HTMLInputElement>(null);
     const [selectedText, setSelectedText] = useState<fabric.IText | null>(null);
-    const [fontFamily, setFontFamily] = useState<string>("Arial");
     const [fontColor, setFontColor] = useState<string>("#000000");
+    const [selectedFont, setSelectedFont] = useState<string>();
+    const [isBold, setIsBold] = useState<boolean>(false);
 
     useEffect(() => {
         if (canvasRef.current) {
@@ -85,12 +91,13 @@ export default function Home() {
             });
 
             // Handle selection events
-            c.on("selection:created", (e) => {
+            c.on("selection:created", () => {
                 const activeObject = c.getActiveObject();
                 if (activeObject && activeObject.type === "i-text") {
                     const textObject = activeObject as fabric.IText;
                     setSelectedText(textObject);
-                    setFontFamily(textObject.fontFamily || "Arial");
+                    setSelectedFont(textObject.fontFamily || 'Helvetica');
+                    setIsBold(textObject.fontWeight === 'bold');
                     setFontColor(textObject.fill as string || "#000000");
                 }
             });
@@ -147,7 +154,7 @@ export default function Home() {
     return (
         <div className="w-full h-full relative bg-gray-200 min-h-screen">
             <div className="relative h-screen">
-                <div className="ml-16 my-4 inline-block relative">
+                <div className="ml-16 my-16 inline-block relative">
                     <div className="mobileFrame overflow-hidden">
                         <Image
                             className="object-contain"
@@ -179,8 +186,8 @@ export default function Home() {
                             </div>
                         </div>
                     </div>
-                    <div className="absolute bottom-0 -mb-16 left-4 right-4 text-center">
-                        <div className="my-2 text-black inline-block relative">
+                    <div className="absolute top-0 -mt-12 left-4 right-4 text-center">
+                        <div className="my-2 text-black inline-block relative text-xs">
                             <select
                                 className="px-4 py-2 rounded-lg"
                                 value={selectedPhone?.id} onChange={(e) => {
@@ -206,47 +213,80 @@ export default function Home() {
                 {/* Popup Text Editor */}
                 {selectedText && (
                     <div
-                        className="bg-gray-500 rounded-md"
+                        className="bg-gray-300 rounded-t-2xl bottom-0"
                         style={{
                             position: "absolute",
-                            top: (selectedText.top || 0) + 60,
-                            left: selectedText.left || 0,
-                            padding: "10px",
-                            zIndex: 1000,
+                            width: fabricCanvasRef?.current?.getWidth() || selectedPhone.width,
+                            left: canvasRef.current ? canvasRef.current.getBoundingClientRect().left : 0,
+                            padding: "16px",
+                            zIndex: 100,
                         }}
                     >
-                        <div>
-                            <label>
-                                <select
-                                    value={fontFamily}
-                                    onChange={(e) => {
-                                        setFontFamily(e.target.value);
-                                        updateTextProperty(canvas, selectedText, "fontFamily", e.target.value);
-                                    }}
-                                >
-                                    <option value="Arial">Arial</option>
-                                    <option value="Georgia">Georgia</option>
-                                    <option value="Times New Roman">Times New Roman</option>
-                                    <option value="Verdana">Verdana</option>
-                                </select>
-                            </label>
-                        </div>
-                        <div>
-                            <label>
-                                Color:{" "}
+                        <div className="flex gap-2 place-items-center mb-12 text-black">
+                            <button className="flex flex-col items-center" onClick={() => {
+                                setOpenPopup('open_font_bottom_sheet');
+                            }}>
+                                <FaA />
+                                <div className="text-sm">Font</div>
+                            </button>
+                            <button className="relative flex flex-col items-center" onClick={() => {
+                                if (colorPickerRef.current) {
+                                    colorPickerRef.current.click();
+                                }
+                            }}>
+                                <IoColorFill color={fontColor} />
+                                <div className="text-sm">Color</div>
                                 <input
                                     type="color"
+                                    ref={colorPickerRef}
                                     value={fontColor}
+                                    style={{ opacity: '0', position: 'absolute', left: 0, top: 0, width: '30px', }}
                                     onChange={(e) => {
                                         setFontColor(e.target.value);
                                         updateTextProperty(canvas, selectedText, "fill", e.target.value);
                                     }}
                                 />
-                            </label>
+                            </button>
+                            <button className="flex flex-col items-center" onClick={() => {
+                                updateTextProperty(canvas, selectedText, "fontWeight", isBold ? 'normal': 'bold');
+                                setIsBold(!isBold);
+                            }} style={{
+                                 fontWeight: isBold ? 'bold' : 'normal'
+                             }}>
+                                <FaBold />
+                                <div className="text-sm">Font</div>
+                            </button>
                         </div>
                     </div>
                 )}
             </div>
+
+            <BottomSheet isOpen={openPopup === 'open_font_bottom_sheet'} onClose={() => setOpenPopup('')}>
+                <div className="bg-white shadow-md absolute bottom-0 inset-x-0 pt-12 rounded-t-xl">
+                    <HiXCircle size={36} onClick={() => setOpenPopup('')} className="absolute mt-1 mr-1 top-0 right-0 cursor-pointer" />
+                    <div className="max-h-[35vh] overflow-y-auto px-4">
+                        <div className="grid grid-cols-2 gap-4">
+                            {Fonts.map((font) => (
+                                <button key={font} style={{ fontFamily: font, fontSize: 24 }} onClick={() => {
+                                    if (selectedText) {
+                                        setSelectedFont(font);
+                                        updateTextProperty(canvas, selectedText, "fontFamily", font);
+                                    }
+                                }}>
+                                    <div className="flex flex-col border border-black p-4" style={{
+                                        border: selectedFont === font ? '2px solid black' : '1px solid black',
+                                        backgroundColor: selectedFont === font ? '#f0f0f0' : ''
+                                    }}>
+                                        <span>One More</span>
+                                        <span className="font-sans text-xs">{font}</span>
+                                    </div>
+                                </button>
+                            ))}
+
+                        </div>
+                    </div>
+                </div>
+            </BottomSheet>
 
             <Modal isOpen={openPopup === 'open_ask_popup'} onClose={() => setOpenPopup('')}>
                 <div className="max-w-md relative p-4">
