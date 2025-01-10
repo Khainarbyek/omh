@@ -6,16 +6,22 @@ export const useTextUtils = () => {
         if (!canvas) return;
 
         const text = new fabric.IText('Hello World', {
-            left: 80,
-            top: 250,
             fontSize: 24,
-            fill: '#000',
+            fill: '#000000',
+            fontFamily: 'Helvetica'
         });
 
         canvas.add(text);
-        canvas.setActiveObject(text);
         callback();
     };
 
-    return { addText };
+    // Update text properties
+    const updateTextProperty = (canvas: fabric.Canvas | undefined, iText: fabric.IText, property: keyof fabric.IText, value: string|number|null) => {
+        if (iText && canvas) {
+            iText.set(property, value);
+            canvas.requestRenderAll();
+        }
+    };
+
+    return { addText, updateTextProperty };
 };

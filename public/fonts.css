@@ -1,0 +1,304 @@
+@font-face {
+	font-family: 'MoonTime';
+	src:
+		url('./fonts/moon_time/MoonTime-Regular.woff2') format('woff2'),
+		url('./fonts/moon_time/MoonTime-Regular.woff') format('woff');
+	font-weight: normal;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Willmard Valiant Script';
+	src:
+		url('./fonts/william/WillmardValiantScript.woff2') format('woff2'),
+		url('./fonts/william/WillmardValiantScript.woff') format('woff');
+	font-weight: normal;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Vogue';
+	src: url('./fonts/vogue/Vogue.woff2') format('woff2');
+	font-weight: normal;
+	font-style: normal;
+	font-display: swap;
+}
+
+/* Mongolia fonts */
+@font-face {
+	font-family: 'Studio';
+	src: url('./fonts/studio/Studio-Script.woff2') format('woff2');
+	font-weight: normal;
+	font-style: normal;
+	font-display: swap;
+}
+@font-face {
+	font-family: 'Tagir';
+	src:
+		url('./fonts/tagir/MogulTagir.woff2') format('woff2'),
+		url('./fonts/tagir/MogulTagir.woff') format('woff');
+	font-weight: normal;
+	font-style: normal;
+	font-display: swap;
+}
+@font-face {
+	font-family: 'Stilla';
+	src:
+		url('./fonts/mongol/subset-MogulStilla.woff2') format('woff2');
+	font-weight: normal;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Skidoos';
+	src:
+		url('./fonts/mongol/subset-MogulSkidoos.woff2') format('woff2');
+	font-weight: normal;
+	font-style: italic;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Pacifico';
+	src:
+		url('./fonts/mongol/subset-Pacifico-Regular.woff2') format('woff2');
+	font-weight: normal;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Japan';
+	src:
+		url('./fonts/mongol/subset-MogulJapan.woff2') format('woff2'),
+		url('./fonts/mongol/subset-MogulJapan.woff') format('woff');
+	font-weight: normal;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'a_MonumentoTitulGr';
+	src:
+		url('./fonts/mongol/AMonumentoTitulGr.woff2') format('woff2'),
+		url('./fonts/mongol/AMonumentoTitulGr.woff') format('woff');
+	font-weight: normal;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Europe';
+	src:
+		url('./fonts/mongol/subset-MogulEurope-ExpandedRegularItalic.woff2') format('woff2'),
+		url('./fonts/mongol/subset-MogulEurope-ExpandedRegularItalic.woff') format('woff');
+	font-weight: normal;
+	font-style: italic;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'FreeStyle';
+	src:
+		url('./fonts/mongol/subset-MogulFreeStyle.woff2') format('woff2'),
+		url('./fonts/mongol/subset-MogulFreeStyle.woff') format('woff');
+	font-weight: normal;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Empirial';
+	src:
+		url('./fonts/mongol/subset-MogulEmpirial.woff2') format('woff2'),
+		url('./fonts/mongol/subset-MogulEmpirial.woff') format('woff');
+	font-weight: normal;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Elizaz';
+	src:
+		url('./fonts/mongol/subset-MogulElizaz.woff2') format('woff2'),
+		url('./fonts/mongol/subset-MogulElizaz.woff') format('woff');
+	font-weight: normal;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Digital';
+	src:
+		url('./fonts/mongol/subset-MogulDigital.woff2') format('woff2'),
+		url('./fonts/mongol/subset-MogulDigital.woff') format('woff');
+	font-weight: normal;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Deutsch Gothic';
+	src:
+		url('./fonts/mongol/subset-MogulDeutschGothic.woff2') format('woff2'),
+		url('./fonts/mongol/subset-MogulDeutschGothic.woff') format('woff');
+	font-weight: normal;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Bangkok';
+	src:
+		url('./fonts/mongol/subset-MogulBangkok.woff2') format('woff2'),
+		url('./fonts/mongol/subset-MogulBangkok.woff') format('woff');
+	font-weight: normal;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Handsta Signature';
+	src:
+		url('./fonts/signature/HandstaSignatureRegular.woff2') format('woff2'),
+		url('./fonts/signature/HandstaSignatureRegular.woff') format('woff');
+	font-weight: normal;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'NewYork';
+	src:
+		url('./fonts/newYork/NewYork.woff2') format('woff2'),
+		url('./fonts/newYork/NewYork.woff') format('woff');
+	font-weight: normal;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Nesans';
+	src:
+		url('./fonts/nesans/NesansRegular.woff2') format('woff2'),
+		url('./fonts/nesans/NesansRegular.woff') format('woff');
+	font-weight: normal;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Luxoorea';
+	src:
+		url('./fonts/luxoorea/Luxoorea.woff2') format('woff2'),
+		url('./fonts/luxoorea/Luxoorea.woff') format('woff');
+	font-weight: normal;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Aqala Display';
+	src:
+		url('./fonts/aqala/AqalaDisplay-Regular.woff2') format('woff2'),
+		url('./fonts/aqala/AqalaDisplay-Regular.woff') format('woff');
+	font-weight: normal;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Japanese';
+	src:
+		url('./fonts/japanese/Japanese3017.woff2') format('woff2'),
+		url('./fonts/japanese/Japanese3017.woff') format('woff');
+	font-weight: normal;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Attack Graffiti';
+	src:
+		url('./fonts/graffiti/aAttackGraffiti.woff2') format('woff2'),
+		url('./fonts/graffiti/aAttackGraffiti.woff') format('woff');
+	font-weight: normal;
+	font-style: normal;
+	font-display: swap;
+}
+@font-face {
+	font-family: 'Boomster Graffiti';
+	src:
+		url('./fonts/graffiti/BOOMSTERGraffiti.woff2') format('woff2'),
+		url('./fonts/graffiti/BOOMSTERGraffiti.woff') format('woff');
+	font-weight: normal;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Don Graffiti';
+	src:
+		url('./fonts/graffiti/DonGraffitiRegular.woff2') format('woff2'),
+		url('./fonts/graffiti/DonGraffitiRegular.woff') format('woff');
+	font-weight: normal;
+	font-style: normal;
+	font-display: swap;
+}
+@font-face {
+	font-family: 'Graffiti Line';
+	src:
+		url('./fonts/graffiti/GraffitiLineRegular.woff2') format('woff2'),
+		url('./fonts/graffiti/GraffitiLineRegular.woff') format('woff');
+	font-weight: normal;
+	font-style: normal;
+	font-display: swap;
+}
+@font-face {
+	font-family: 'Press Start';
+	src:
+		url('./fonts/PressStart/PressStart2P-Regular.woff2') format('woff2'),
+		url('./fonts/PressStart/PressStart2P-Regular.woff') format('woff');
+	font-weight: normal;
+	font-style: normal;
+	font-display: swap;
+}
+@font-face {
+	font-family: 'Bebas';
+	src:
+		url('./fonts/bebas/BebasNeue-Book.woff2') format('woff2'),
+		url('./fonts/bebas/BebasNeue-Book.woff') format('woff');
+	font-weight: normal;
+	font-style: normal;
+	font-display: swap;
+}
+@font-face {
+	font-family: 'Shirkhand';
+	src:
+		url('./fonts/Shirkhand/Shrikhand-Regular.woff2') format('woff2'),
+		url('./fonts/Shirkhand/Shrikhand-Regular.woff') format('woff');
+	font-weight: normal;
+	font-style: normal;
+	font-display: swap;
+}
+@font-face {
+	font-family: 'Cloister';
+	src:
+		url('./fonts/cloister/CloisterBlack-Light.woff2') format('woff2'),
+		url('./fonts/cloister/CloisterBlack-Light.woff') format('woff');
+	font-weight: normal;
+	font-style: normal;
+	font-display: swap;
+}
+@font-face {
+	font-family: 'Thundergood';
+	src:
+		url('./fonts/thundergood/ThundergoodRegular.woff2') format('woff2'),
+		url('./fonts/thundergood/ThundergoodRegular.woff') format('woff');
+	font-weight: normal;
+	font-style: normal;
+	font-display: swap;
+}

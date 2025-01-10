@@ -115,9 +115,7 @@ export const useImageUtils = () => {
             const result = reader.result as string;
             fabric.Image.fromURL(result, (img) => {
                 img.scaleToWidth(160);
-                img.set({ left: 60, top: 220 });
                 canvas.add(img);
-                canvas.setActiveObject(img);
             });
         };
 

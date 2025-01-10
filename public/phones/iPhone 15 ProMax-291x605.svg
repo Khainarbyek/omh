@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 291 605" height="605" width="291">
+<g clip-path="url(#clip0_1161_1231)">
+<rect stroke-width="2" stroke="#1E1E1E" rx="47" height="602" width="288" y="1" x="2"></rect>
+<g opacity="0.4">
+<rect stroke-dasharray="3 6" stroke-linejoin="round" stroke-linecap="round" stroke-width="2" stroke="#1E1E1E" fill="#CCCCCC" rx="34" height="142" width="143" y="19" x="19"></rect>
+<path stroke-dasharray="2 4" stroke-linejoin="round" stroke-linecap="round" stroke="#1E1E1E" d="M83.9998 54.5019C84.0342 64.3742 78.9186 73.8303 70.6326 79.2016C55.4825 89.07 35.1349 83.1566 27.6334 66.7048C24.1232 59.0677 24.1212 49.9361 27.6334 42.2991C35.1349 25.8473 55.4825 19.9339 70.6326 29.8023C78.9186 35.1736 84.0361 44.6297 83.9998 54.5019Z"></path>
+<path stroke-dasharray="2 4" stroke-linejoin="round" stroke-linecap="round" stroke="#1E1E1E" d="M83.9998 126.502C84.0342 136.374 78.9186 145.83 70.6326 151.202C55.4825 161.07 35.1349 155.157 27.6334 138.705C24.1232 131.068 24.1212 121.936 27.6334 114.299C35.1349 97.8473 55.4825 91.9339 70.6326 101.802C78.9186 107.174 84.0361 116.63 83.9998 126.502Z"></path>
+<path stroke-dasharray="2 4" stroke-linejoin="round" stroke-linecap="round" stroke="#1E1E1E" d="M151 90.5019C151.034 100.374 145.919 109.83 137.633 115.202C122.483 125.07 102.135 119.157 94.6334 102.705C91.1232 95.0677 91.1212 85.9361 94.6334 78.2991C102.135 61.8473 122.483 55.9339 137.633 65.8023C145.919 71.1736 151.036 80.6297 151 90.5019Z"></path>
+<path stroke-dasharray="2 4" stroke-linejoin="round" stroke-linecap="round" stroke="#1E1E1E" d="M135.056 39.9866C135.066 34.0642 130.723 28.9662 124.875 28.037C117.519 26.8621 110.857 32.5369 110.851 39.9866C110.857 47.3772 117.423 53.0389 124.735 51.9574C130.646 51.0872 135.066 45.9613 135.056 39.9866Z"></path>
+<path stroke-dasharray="2 4" stroke-linejoin="round" stroke-linecap="round" stroke="#1E1E1E" d="M134.646 141.694C134.658 147.205 130.75 152.018 125.353 153.137C118.084 154.65 111.272 149.117 111.26 141.694C111.27 134.326 117.987 128.805 125.217 130.223C130.677 131.29 134.658 136.131 134.646 141.694Z"></path>
+</g>
+</g>
+<defs>
+<clipPath id="clip0_1161_1231">
+<rect transform="translate(0.834473)" fill="white" height="604.346" width="289.89"></rect>
+</clipPath>
+</defs>
+</svg>

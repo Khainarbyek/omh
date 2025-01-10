@@ -6,31 +6,54 @@ import { PixabayImage } from "@/types/pixabay_image";
 import { HiXCircle, HiArrowUturnLeft, HiArrowUturnRight, HiArrowDownOnSquare, HiMiniTrash, HiArrowUpCircle, HiSquare3Stack3D } from 'react-icons/hi2';
 import Image from 'next/image';
 import Phones from '@/data/phones';
+import Fonts from '@/data/fonts';
 import { Phone } from "@/types/phone";
 import { useHistory } from '@/utils/historyUtils';
 import { Modal } from '@/components/modal';
 import { useImageUtils } from '@/utils/imageUtils';
 import { Action } from "@/types/action";
 import { AiFillMobile, AiOutlineFontSize } from "react-icons/ai";
-import { IoImageSharp } from "react-icons/io5";
+import { IoColorFill, IoImageSharp } from "react-icons/io5";
 import { useTextUtils } from "@/utils/textUtils";
-
+import { FaA, FaBold } from "react-icons/fa6";
+import { BottomSheet } from "@/components/bottomsheet";
+import "../../public/fonts.css"
 export default function Home() {
+
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const fabricCanvasRef = useRef<fabric.Canvas | null>(null);
     const [canvas, setCanvas] = useState<fabric.Canvas | undefined>();
     const [isResetCanvas, setIsResetCanvas] = useState<number>(0);
+
+    const { addText, updateTextProperty } = useTextUtils();
+    const { setBackgroundFromImage, setBackgroundFromUpload, uploadImage, exportImage, addImage } = useImageUtils();
+
     const [images, setImages] = useState<PixabayImage[]>([]);
     const [selectedPhone, setSelectedPhone] = useState<Phone>(Phones[0]);
     const [openPopup, setOpenPopup] = useState<Action>('');
     const { saveCanvasState, undo, redo } = useHistory();
     const [selectedImageTab, setSelectedImageTab] = useState<number>(0);
 
+    const colorPickerRef = useRef<HTMLInputElement>(null);
+    const [selectedText, setSelectedText] = useState<fabric.IText | null>(null);
+    const [fontColor, setFontColor] = useState<string>("#000000");
+    const [selectedFont, setSelectedFont] = useState<string>();
+    const [isBold, setIsBold] = useState<boolean>(false);
+
     useEffect(() => {
         if (canvasRef.current) {
+            const s = window.innerHeight * 0.8;
+            let height = 800;
+
+            if (height > s) {
+                height = s;
+            }
+
+            const width = height / selectedPhone.height * selectedPhone.width;
+
             const c = new fabric.Canvas(canvasRef.current, {
-                height: selectedPhone.height,
-                width: selectedPhone.width,
+                height: height,
+                width: width
             });
 
             fabricCanvasRef.current = c;
@@ -50,7 +73,7 @@ export default function Home() {
                 },
                 render: (ctx, left, top) => {
                     const img = new window.Image();
-                    img.src = "/icons/trash-icon.png";
+                    img.src = '/icons/trash.svg';
                     img.onload = () => {
                         ctx.drawImage(img, left - 12, top - 12, 24, 24);
                     };
@@ -59,27 +82,38 @@ export default function Home() {
 
             // Add the Trash Button to all objects
             fabric.Object.prototype.controls.deleteControl = deleteControl;
-            setCanvas(c);
 
-            // // Listen for mouse down events on the canvas
-            // c.on('mouse:down', function (e) {
-            //     // Check if an object is clicked
-            //     console.log(e);
-            //     if (!e.target) {
-            //         // No object was clicked, discard the active object
-            //         c.discardActiveObject();
-            //         c.requestRenderAll();
-            //     }
-            // });
+            c.on('object:added', function (e) {
+                if (e.target) {
+                    c.setActiveObject(e.target);
+                    c.centerObject(e.target);
+                }
+            });
+
+            // Handle selection events
+            c.on("selection:created", () => {
+                const activeObject = c.getActiveObject();
+                if (activeObject && activeObject.type === "i-text") {
+                    const textObject = activeObject as fabric.IText;
+                    setSelectedText(textObject);
+                    setSelectedFont(textObject.fontFamily || 'Helvetica');
+                    setIsBold(textObject.fontWeight === 'bold');
+                    setFontColor(textObject.fill as string || "#000000");
+                }
+            });
+
+            c.on("selection:cleared", () => {
+                setSelectedText(null);
+            });
+
+            setCanvas(c);
 
             return () => {
                 c.dispose();
             };
         }
-    }, [isResetCanvas, selectedPhone]);
+    }, [isResetCanvas]);
 
-    const { setBackgroundFromImage, setBackgroundFromUpload, uploadImage, exportImage, addImage } = useImageUtils();
-    const { addText } = useTextUtils();
 
     //TODO: Use the cloneProduct function cloneProduct("9692855959837");
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -93,23 +127,6 @@ export default function Home() {
         const data = await response.json();
         console.log('Cloned Product:', data);
     };
-
-    // const addRect = (canvas?: fabric.Canvas) => {
-    //     if (!canvas) return;
-
-    //     const rect = new fabric.Rect({
-    //         width: 100,
-    //         height: 100,
-    //         fill: 'green',
-    //         stroke: 'blue',
-    //         left: 50,
-    //         top: 50,
-    //     });
-
-    //     canvas.add(rect);
-    //     canvas.setActiveObject(rect);
-    //     saveCanvasState(canvas);
-    // };
 
     useEffect(() => {
         const fetchImages = async () => {
@@ -137,15 +154,15 @@ export default function Home() {
     return (
         <div className="w-full h-full relative bg-gray-200 min-h-screen">
             <div className="relative h-screen">
-                <div className="ml-16 my-4 inline-block relative">
-                    <div className="mobileFrame">
+                <div className="ml-16 my-16 inline-block relative">
+                    <div className="mobileFrame overflow-hidden">
                         <Image
+                            className="object-contain"
                             style={{ position: "absolute", zIndex: 20, pointerEvents: 'none' }}
-                            width={selectedPhone.width}
-                            height={selectedPhone.height}
+                            width={fabricCanvasRef?.current?.getWidth() || selectedPhone.width}
+                            height={fabricCanvasRef?.current?.getHeight() || selectedPhone.height}
                             src={selectedPhone.svg}
-                            alt=""
-                            priority={false} />
+                            alt="" />
                     </div>
                     <div className="absolute left-0 -ml-14 z-10 text-white">
                         <div className="flex flex-col place-items-center gap-4">
@@ -169,8 +186,8 @@ export default function Home() {
                             </div>
                         </div>
                     </div>
-                    <div className="absolute bottom-0 -mb-16 left-4 right-4 text-center">
-                        <div className="my-2 text-black inline-block relative">
+                    <div className="absolute top-0 -mt-12 left-4 right-4 text-center">
+                        <div className="my-2 text-black inline-block relative text-xs">
                             <select
                                 className="px-4 py-2 rounded-lg"
                                 value={selectedPhone?.id} onChange={(e) => {
@@ -190,9 +207,86 @@ export default function Home() {
                             </select>
                         </div>
                     </div>
+
                     <canvas ref={canvasRef} id="canvas" className="rounded-[50px]" />
                 </div>
+                {/* Popup Text Editor */}
+                {selectedText && (
+                    <div
+                        className="bg-gray-300 rounded-t-2xl bottom-0"
+                        style={{
+                            position: "absolute",
+                            width: fabricCanvasRef?.current?.getWidth() || selectedPhone.width,
+                            left: canvasRef.current ? canvasRef.current.getBoundingClientRect().left : 0,
+                            padding: "16px",
+                            zIndex: 100,
+                        }}
+                    >
+                        <div className="flex gap-2 place-items-center mb-12 text-black">
+                            <button className="flex flex-col items-center" onClick={() => {
+                                setOpenPopup('open_font_bottom_sheet');
+                            }}>
+                                <FaA />
+                                <div className="text-sm">Font</div>
+                            </button>
+                            <button className="relative flex flex-col items-center" onClick={() => {
+                                if (colorPickerRef.current) {
+                                    colorPickerRef.current.click();
+                                }
+                            }}>
+                                <IoColorFill color={fontColor} />
+                                <div className="text-sm">Color</div>
+                                <input
+                                    type="color"
+                                    ref={colorPickerRef}
+                                    value={fontColor}
+                                    style={{ opacity: '0', position: 'absolute', left: 0, top: 0, width: '30px', }}
+                                    onChange={(e) => {
+                                        setFontColor(e.target.value);
+                                        updateTextProperty(canvas, selectedText, "fill", e.target.value);
+                                    }}
+                                />
+                            </button>
+                            <button className="flex flex-col items-center" onClick={() => {
+                                updateTextProperty(canvas, selectedText, "fontWeight", isBold ? 'normal': 'bold');
+                                setIsBold(!isBold);
+                            }} style={{
+                                 fontWeight: isBold ? 'bold' : 'normal'
+                             }}>
+                                <FaBold />
+                                <div className="text-sm">Font</div>
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
+
+            <BottomSheet isOpen={openPopup === 'open_font_bottom_sheet'} onClose={() => setOpenPopup('')}>
+                <div className="bg-white shadow-md absolute bottom-0 inset-x-0 pt-12 rounded-t-xl">
+                    <HiXCircle size={36} onClick={() => setOpenPopup('')} className="absolute mt-1 mr-1 top-0 right-0 cursor-pointer" />
+                    <div className="max-h-[35vh] overflow-y-auto px-4">
+                        <div className="grid grid-cols-2 gap-4">
+                            {Fonts.map((font) => (
+                                <button key={font} style={{ fontFamily: font, fontSize: 24 }} onClick={() => {
+                                    if (selectedText) {
+                                        setSelectedFont(font);
+                                        updateTextProperty(canvas, selectedText, "fontFamily", font);
+                                    }
+                                }}>
+                                    <div className="flex flex-col border border-black p-4" style={{
+                                        border: selectedFont === font ? '2px solid black' : '1px solid black',
+                                        backgroundColor: selectedFont === font ? '#f0f0f0' : ''
+                                    }}>
+                                        <span>One More</span>
+                                        <span className="font-sans text-xs">{font}</span>
+                                    </div>
+                                </button>
+                            ))}
+
+                        </div>
+                    </div>
+                </div>
+            </BottomSheet>
 
             <Modal isOpen={openPopup === 'open_ask_popup'} onClose={() => setOpenPopup('')}>
                 <div className="max-w-md relative p-4">
