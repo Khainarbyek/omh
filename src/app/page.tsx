@@ -36,8 +36,13 @@ export default function Home() {
 
     useEffect(() => {
         if (canvasRef.current) {
-            const s = window.innerHeight / 1008 * 0.9;
-            const height = 905 * s;
+            const s = window.innerHeight * 0.8;
+            let height = 800;
+
+            if (height > s) {
+                height = s;
+            }
+
             const width = height / selectedPhone.height * selectedPhone.width;
 
             const c = new fabric.Canvas(canvasRef.current, {
@@ -71,7 +76,6 @@ export default function Home() {
 
             // Add the Trash Button to all objects
             fabric.Object.prototype.controls.deleteControl = deleteControl;
-            fabric.Object.prototype.controls.customControl = deleteControl;
 
             c.on('object:added', function (e) {
                 if (e.target) {
@@ -144,14 +148,14 @@ export default function Home() {
         <div className="w-full h-full relative bg-gray-200 min-h-screen">
             <div className="relative h-screen">
                 <div className="ml-16 my-4 inline-block relative">
-                    <div className="mobileFrame">
+                    <div className="mobileFrame overflow-hidden">
                         <Image
+                            className="object-contain"
                             style={{ position: "absolute", zIndex: 20, pointerEvents: 'none' }}
                             width={fabricCanvasRef?.current?.getWidth() || selectedPhone.width}
                             height={fabricCanvasRef?.current?.getHeight() || selectedPhone.height}
                             src={selectedPhone.svg}
-                            alt=""
-                            priority={false} />
+                            alt="" />
                     </div>
                     <div className="absolute left-0 -ml-14 z-10 text-white">
                         <div className="flex flex-col place-items-center gap-4">
@@ -184,6 +188,7 @@ export default function Home() {
                                     const phone = Phones.find((p: Phone) => p.id === selectedPhoneId);
                                     if (phone != undefined) {
                                         setSelectedPhone(phone);
+                                        setIsResetCanvas(isResetCanvas + 1);
                                     }
                                 }}>
                                 <option value="" disabled>Select a phone</option>
@@ -195,6 +200,7 @@ export default function Home() {
                             </select>
                         </div>
                     </div>
+
                     <canvas ref={canvasRef} id="canvas" className="rounded-[50px]" />
                 </div>
                 {/* Popup Text Editor */}
