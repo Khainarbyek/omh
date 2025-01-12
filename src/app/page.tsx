@@ -15,7 +15,6 @@ import { Action } from "@/types/action";
 import { AiFillMobile, AiOutlineFontSize } from "react-icons/ai";
 import { IoColorFill, IoImageSharp } from "react-icons/io5";
 import { useTextUtils } from "@/utils/textUtils";
-import { FaA, FaBold } from "react-icons/fa6";
 import { BottomSheet } from "@/components/bottomsheet";
 import "../../public/fonts.css"
 export default function Home() {
@@ -39,6 +38,8 @@ export default function Home() {
     const [fontColor, setFontColor] = useState<string>("#000000");
     const [selectedFont, setSelectedFont] = useState<string>();
     const [isBold, setIsBold] = useState<boolean>(false);
+    const [isUnderline, setIsUnderline] = useState<boolean>(false);
+    const [islineThrough, setIslineThrough] = useState<boolean>(false);
 
     useEffect(() => {
         if (canvasRef.current) {
@@ -99,6 +100,8 @@ export default function Home() {
                     setSelectedFont(textObject.fontFamily || 'Helvetica');
                     setIsBold(textObject.fontWeight === 'bold');
                     setFontColor(textObject.fill as string || "#000000");
+                    setIsUnderline(textObject.underline === true ? true : false);
+                    setIslineThrough(textObject.linethrough === true ? true : false);
                 }
             });
 
@@ -112,7 +115,7 @@ export default function Home() {
                 c.dispose();
             };
         }
-    }, [isResetCanvas]);
+    }, [isResetCanvas, selectedPhone]);
 
 
     //TODO: Use the cloneProduct function cloneProduct("9692855959837");
@@ -210,24 +213,26 @@ export default function Home() {
 
                     <canvas ref={canvasRef} id="canvas" className="rounded-[50px]" />
                 </div>
+
                 {/* Popup Text Editor */}
                 {selectedText && (
                     <div
-                        className="bg-gray-300 rounded-t-2xl bottom-0"
+                        className="bg-gray-300 rounded-2xl h-16"
                         style={{
                             position: "absolute",
+                            top: (fabricCanvasRef?.current?.getHeight() ?? 1) + 70,
                             width: fabricCanvasRef?.current?.getWidth() || selectedPhone.width,
                             left: canvasRef.current ? canvasRef.current.getBoundingClientRect().left : 0,
                             padding: "16px",
                             zIndex: 100,
                         }}
                     >
-                        <div className="flex gap-2 place-items-center mb-12 text-black">
+                        <div className="flex gap-3 place-items-center place-content-center mb-12 text-black">
                             <button className="flex flex-col items-center" onClick={() => {
                                 setOpenPopup('open_font_bottom_sheet');
                             }}>
-                                <FaA />
-                                <div className="text-sm">Font</div>
+                                <div className="leading-none" style={{ fontFamily: selectedFont }}>A</div>
+                                <div className="text-xs">Font</div>
                             </button>
                             <button className="relative flex flex-col items-center" onClick={() => {
                                 if (colorPickerRef.current) {
@@ -235,7 +240,7 @@ export default function Home() {
                                 }
                             }}>
                                 <IoColorFill color={fontColor} />
-                                <div className="text-sm">Color</div>
+                                <div className="text-xs">Color</div>
                                 <input
                                     type="color"
                                     ref={colorPickerRef}
@@ -248,13 +253,26 @@ export default function Home() {
                                 />
                             </button>
                             <button className="flex flex-col items-center" onClick={() => {
-                                updateTextProperty(canvas, selectedText, "fontWeight", isBold ? 'normal': 'bold');
+                                updateTextProperty(canvas, selectedText, "fontWeight", isBold ? 'normal' : 'bold');
                                 setIsBold(!isBold);
-                            }} style={{
-                                 fontWeight: isBold ? 'bold' : 'normal'
-                             }}>
-                                <FaBold />
-                                <div className="text-sm">Font</div>
+                            }}>
+                                <div className="leading-none" style={{ fontWeight: isBold ? 'bold' : 'normal' }}>B</div>
+                                <div className="text-xs">Bold</div>
+                            </button>
+                            <button className="flex flex-col items-center" onClick={() => {
+                                setIsUnderline(!isUnderline);
+                                updateTextProperty(canvas, selectedText, "underline", isUnderline ? 'true' : null);
+                            }}>
+                                <div className="leading-none underline">U</div>
+                                <div className="text-xs">Underline</div>
+                            </button>
+
+                            <button className="flex flex-col items-center" onClick={() => {
+                                setIslineThrough(!islineThrough);
+                                updateTextProperty(canvas, selectedText, "linethrough", islineThrough ? 'true' : null);
+                            }}>
+                                <div className="leading-none line-through">D</div>
+                                <div className="text-xs">Stroke</div>
                             </button>
                         </div>
                     </div>
