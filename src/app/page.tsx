@@ -16,6 +16,9 @@ import { IoImageSharp } from "react-icons/io5";
 import { useTextUtils } from "@/utils/textUtils";
 import "../../public/fonts.css"
 import { TextEditor } from "@/components/TextEditor";
+import { BottomSheet } from "@/components/bottomsheet";
+import { FaFileImage } from "react-icons/fa6";
+import { MdCheckBoxOutlineBlank, MdOutlineTextFields } from "react-icons/md";
 export default function Home() {
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -31,7 +34,7 @@ export default function Home() {
     const [openPopup, setOpenPopup] = useState<Action>('');
     const { saveCanvasState, undo, redo } = useHistory();
     const [selectedImageTab, setSelectedImageTab] = useState<number>(0);
-
+    const [objects, setObjects] = useState<fabric.Object[]>([]);
     const [selectedObject, setSelectedObject] = useState<fabric.Object | null>(null);
 
     useEffect(() => {
@@ -82,20 +85,32 @@ export default function Home() {
                     c.setActiveObject(e.target);
                     c.centerObject(e.target);
                 }
+                setObjects(c.getObjects());
             });
 
             // Handle selection events
-            c.on("selection:created", () => {
-                const activeObject = c.getActiveObject();
-                if (activeObject && activeObject.type === "i-text") {
-                    const textObject = activeObject as fabric.IText;
-                    setSelectedObject(textObject);
-                }
+            c.on("selection:created", (e) => {
+                setSelectedObject(e.selected?.[0] || null);
+                // const activeObject = c.getActiveObject();
+                // if (activeObject && activeObject.type === "i-text") {
+                //     const textObject = activeObject as fabric.IText;
+                // }
+                // setSelectedObject(activeObject);
+            });
+
+            c.on('selection:updated', (e) => {
+                setSelectedObject(e.selected?.[0] || null);
             });
 
             c.on("selection:cleared", () => {
                 setSelectedObject(null);
             });
+
+            c.on('object:removed', () => {
+                setObjects(c.getObjects());
+            });
+
+            setObjects(c.getObjects());
 
             setCanvas(c);
 
@@ -104,6 +119,12 @@ export default function Home() {
             };
         }
     }, [isResetCanvas, selectedPhone]);
+
+    const handleSelectObject = (object: fabric.Object) => {
+        canvas?.setActiveObject(object);
+        canvas?.renderAll();
+        setSelectedObject(object);
+    };
 
 
     //TODO: Use the cloneProduct function cloneProduct("9692855959837");
@@ -164,7 +185,9 @@ export default function Home() {
                             <div className="flex flex-col gap-2 bg-black rounded-xl p-2">
                                 <button className="action-button" onClick={() => addText(canvas, () => saveCanvasState(canvas))}><AiOutlineFontSize /></button>
                                 <button className="action-button" onClick={() => setOpenPopup('open_image_popup')}><IoImageSharp /></button>
-                                <button className="action-button" onClick={() => setOpenPopup('')}><HiSquare3Stack3D /></button>
+                                <button className="action-button" onClick={() => {
+                                    setOpenPopup('open_layer_bottom_sheet');
+                                }}><HiSquare3Stack3D /></button>
                                 <button className="action-button" onClick={() => setOpenPopup('open_background_image_popup')}><AiFillMobile /></button>
                             </div>
 
@@ -218,7 +241,53 @@ export default function Home() {
                         <TextEditor selectedText={selectedObject} canvas={canvas} />
                     </div>
                 )}
+
+
+
             </div>
+
+            <BottomSheet isOpen={openPopup === 'open_layer_bottom_sheet'} onClose={() => setOpenPopup('')}>
+                <div
+                    className="bg-gray-300 rounded-2xl max-h-80 overflow-y-auto"
+                    style={{
+                        position: "absolute",
+                        bottom: 0,
+                        width: fabricCanvasRef?.current?.getWidth() || selectedPhone.width,
+                        left: canvasRef.current ? canvasRef.current.getBoundingClientRect().left : 0,
+                        padding: "16px",
+                        zIndex: 100,
+                    }}
+                >
+                    <div className="p-4">
+                        <h3 className="pb-2">Layers</h3>
+                        <ul>
+                            {objects.map((obj, index) => (
+                                <li
+                                    key={index}
+                                    onClick={() => handleSelectObject(obj)}
+                                    style={{
+                                        cursor: 'pointer',
+                                        padding: '5px',
+                                        backgroundColor: selectedObject === obj ? '#ccc' : 'transparent',
+                                        border: '1px solid #ddd',
+                                        marginBottom: '5px',
+                                    }}
+                                    className="flex gap-2 items-center"
+                                >
+                                    {
+                                        obj.type === 'image' ? 
+                                            <FaFileImage /> : 
+                                            obj.type === 'i-text' ? 
+                                            <MdOutlineTextFields /> : 
+                                            <MdCheckBoxOutlineBlank />
+                                    }
+                                    {obj.type || obj.name || `Object ${index + 1}`}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                </div>
+            </BottomSheet>
 
             <Modal isOpen={openPopup === 'open_ask_popup'} onClose={() => setOpenPopup('')}>
                 <div className="max-w-md relative p-4">
