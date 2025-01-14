@@ -6,17 +6,22 @@ import { PixabayImage } from "@/types/pixabay_image";
 import { HiXCircle, HiArrowUturnLeft, HiArrowUturnRight, HiArrowDownOnSquare, HiMiniTrash, HiArrowUpCircle, HiSquare3Stack3D } from 'react-icons/hi2';
 import Image from 'next/image';
 import Phones from '@/data/phones';
-import Fonts from '@/data/fonts';
 import { Phone } from "@/types/phone";
 import { useHistory } from '@/utils/historyUtils';
 import { Modal } from '@/components/modal';
 import { useImageUtils } from '@/utils/imageUtils';
 import { Action } from "@/types/action";
 import { AiFillMobile, AiOutlineFontSize } from "react-icons/ai";
-import { IoColorFill, IoImageSharp } from "react-icons/io5";
+import { IoImageSharp } from "react-icons/io5";
 import { useTextUtils } from "@/utils/textUtils";
-import { BottomSheet } from "@/components/bottomsheet";
 import "../../public/fonts.css"
+import { TextEditor } from "@/components/TextEditor";
+import { BottomSheet } from "@/components/bottomsheet";
+import { FaFileImage } from "react-icons/fa6";
+import { MdCheckBoxOutlineBlank, MdOutlineTextFields } from "react-icons/md";
+import { TbLayersSelected, TbLayersSelectedBottom } from "react-icons/tb";
+import { BiSolidLayer } from "react-icons/bi";
+import { VscLayersDot } from "react-icons/vsc";
 export default function Home() {
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -24,7 +29,7 @@ export default function Home() {
     const [canvas, setCanvas] = useState<fabric.Canvas | undefined>();
     const [isResetCanvas, setIsResetCanvas] = useState<number>(0);
 
-    const { addText, updateTextProperty } = useTextUtils();
+    const { addText } = useTextUtils();
     const { setBackgroundFromImage, setBackgroundFromUpload, uploadImage, exportImage, addImage } = useImageUtils();
 
     const [images, setImages] = useState<PixabayImage[]>([]);
@@ -32,14 +37,8 @@ export default function Home() {
     const [openPopup, setOpenPopup] = useState<Action>('');
     const { saveCanvasState, undo, redo } = useHistory();
     const [selectedImageTab, setSelectedImageTab] = useState<number>(0);
-
-    const colorPickerRef = useRef<HTMLInputElement>(null);
-    const [selectedText, setSelectedText] = useState<fabric.IText | null>(null);
-    const [fontColor, setFontColor] = useState<string>("#000000");
-    const [selectedFont, setSelectedFont] = useState<string>();
-    const [isBold, setIsBold] = useState<boolean>(false);
-    const [isUnderline, setIsUnderline] = useState<boolean>(false);
-    const [islineThrough, setIslineThrough] = useState<boolean>(false);
+    const [objects, setObjects] = useState<fabric.Object[]>([]);
+    const [selectedObject, setSelectedObject] = useState<fabric.Object | null>(null);
 
     useEffect(() => {
         if (canvasRef.current) {
@@ -89,25 +88,27 @@ export default function Home() {
                     c.setActiveObject(e.target);
                     c.centerObject(e.target);
                 }
+                setObjects(c.getObjects());
             });
 
             // Handle selection events
-            c.on("selection:created", () => {
-                const activeObject = c.getActiveObject();
-                if (activeObject && activeObject.type === "i-text") {
-                    const textObject = activeObject as fabric.IText;
-                    setSelectedText(textObject);
-                    setSelectedFont(textObject.fontFamily || 'Helvetica');
-                    setIsBold(textObject.fontWeight === 'bold');
-                    setFontColor(textObject.fill as string || "#000000");
-                    setIsUnderline(textObject.underline === true ? true : false);
-                    setIslineThrough(textObject.linethrough === true ? true : false);
-                }
+            c.on("selection:created", (e) => {
+                setSelectedObject(e.selected?.[0] || null);
+            });
+
+            c.on('selection:updated', (e) => {
+                setSelectedObject(e.selected?.[0] || null);
             });
 
             c.on("selection:cleared", () => {
-                setSelectedText(null);
+                setSelectedObject(null);
             });
+
+            c.on('object:removed', () => {
+                setObjects(c.getObjects());
+            });
+
+            setObjects(c.getObjects());
 
             setCanvas(c);
 
@@ -117,6 +118,43 @@ export default function Home() {
         }
     }, [isResetCanvas, selectedPhone]);
 
+    const handleSelectObject = (object: fabric.Object) => {
+        canvas?.setActiveObject(object);
+        canvas?.renderAll();
+        setSelectedObject(object);
+    };
+
+    // Function to move object forward in the stack
+    const bringForward = () => {
+        if (selectedObject && canvasRef.current) {
+            fabricCanvasRef.current?.bringForward(selectedObject);
+            fabricCanvasRef.current?.renderAll();
+            setObjects(canvas?.getObjects() ?? []);
+        }
+    };
+
+    // Function to move object backward in the stack
+    const sendBackward = () => {
+        if (selectedObject && canvasRef.current) {
+            fabricCanvasRef.current?.sendBackwards(selectedObject);
+            fabricCanvasRef.current?.renderAll();
+            setObjects(canvas?.getObjects() ?? []);
+        }
+    };
+
+    const bringToFront = () => {
+        if (selectedObject && canvasRef.current) {
+            fabricCanvasRef.current?.bringToFront(selectedObject);
+            fabricCanvasRef.current?.renderAll();
+        }
+    };
+
+    const sendToBack = () => {
+        if (selectedObject && canvasRef.current) {
+            fabricCanvasRef.current?.sendToBack(selectedObject);
+            fabricCanvasRef.current?.renderAll();
+        }
+    };
 
     //TODO: Use the cloneProduct function cloneProduct("9692855959837");
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -155,7 +193,7 @@ export default function Home() {
     }, []);
 
     return (
-        <div className="w-full h-full relative bg-gray-200 min-h-screen">
+        <div className="w-full h-full relative bg-gray-200">
             <div className="relative h-screen">
                 <div className="ml-16 my-16 inline-block relative">
                     <div className="mobileFrame overflow-hidden">
@@ -165,7 +203,9 @@ export default function Home() {
                             width={fabricCanvasRef?.current?.getWidth() || selectedPhone.width}
                             height={fabricCanvasRef?.current?.getHeight() || selectedPhone.height}
                             src={selectedPhone.svg}
-                            alt="" />
+                            alt=""
+                            priority
+                        />
                     </div>
                     <div className="absolute left-0 -ml-14 z-10 text-white">
                         <div className="flex flex-col place-items-center gap-4">
@@ -176,7 +216,9 @@ export default function Home() {
                             <div className="flex flex-col gap-2 bg-black rounded-xl p-2">
                                 <button className="action-button" onClick={() => addText(canvas, () => saveCanvasState(canvas))}><AiOutlineFontSize /></button>
                                 <button className="action-button" onClick={() => setOpenPopup('open_image_popup')}><IoImageSharp /></button>
-                                <button className="action-button" onClick={() => setOpenPopup('')}><HiSquare3Stack3D /></button>
+                                <button className="action-button" onClick={() => {
+                                    setOpenPopup('open_layer_bottom_sheet');
+                                }}><HiSquare3Stack3D /></button>
                                 <button className="action-button" onClick={() => setOpenPopup('open_background_image_popup')}><AiFillMobile /></button>
                             </div>
 
@@ -215,7 +257,7 @@ export default function Home() {
                 </div>
 
                 {/* Popup Text Editor */}
-                {selectedText && (
+                {(selectedObject instanceof fabric.IText && canvas) && (
                     <div
                         className="bg-gray-300 rounded-2xl h-16"
                         style={{
@@ -227,81 +269,67 @@ export default function Home() {
                             zIndex: 100,
                         }}
                     >
-                        <div className="flex gap-3 place-items-center place-content-center mb-12 text-black">
-                            <button className="flex flex-col items-center" onClick={() => {
-                                setOpenPopup('open_font_bottom_sheet');
-                            }}>
-                                <div className="leading-none" style={{ fontFamily: selectedFont }}>A</div>
-                                <div className="text-xs">Font</div>
-                            </button>
-                            <button className="relative flex flex-col items-center" onClick={() => {
-                                if (colorPickerRef.current) {
-                                    colorPickerRef.current.click();
-                                }
-                            }}>
-                                <IoColorFill color={fontColor} />
-                                <div className="text-xs">Color</div>
-                                <input
-                                    type="color"
-                                    ref={colorPickerRef}
-                                    value={fontColor}
-                                    style={{ opacity: '0', position: 'absolute', left: 0, top: 0, width: '30px', }}
-                                    onChange={(e) => {
-                                        setFontColor(e.target.value);
-                                        updateTextProperty(canvas, selectedText, "fill", e.target.value);
-                                    }}
-                                />
-                            </button>
-                            <button className="flex flex-col items-center" onClick={() => {
-                                updateTextProperty(canvas, selectedText, "fontWeight", isBold ? 'normal' : 'bold');
-                                setIsBold(!isBold);
-                            }}>
-                                <div className="leading-none" style={{ fontWeight: isBold ? 'bold' : 'normal' }}>B</div>
-                                <div className="text-xs">Bold</div>
-                            </button>
-                            <button className="flex flex-col items-center" onClick={() => {
-                                setIsUnderline(!isUnderline);
-                                updateTextProperty(canvas, selectedText, "underline", isUnderline ? 'true' : null);
-                            }}>
-                                <div className="leading-none underline">U</div>
-                                <div className="text-xs">Underline</div>
-                            </button>
-
-                            <button className="flex flex-col items-center" onClick={() => {
-                                setIslineThrough(!islineThrough);
-                                updateTextProperty(canvas, selectedText, "linethrough", islineThrough ? 'true' : null);
-                            }}>
-                                <div className="leading-none line-through">D</div>
-                                <div className="text-xs">Stroke</div>
-                            </button>
-                        </div>
+                        <TextEditor selectedText={selectedObject} canvas={canvas} />
                     </div>
                 )}
             </div>
 
-            <BottomSheet isOpen={openPopup === 'open_font_bottom_sheet'} onClose={() => setOpenPopup('')}>
-                <div className="bg-white shadow-md absolute bottom-0 inset-x-0 pt-12 rounded-t-xl">
-                    <HiXCircle size={36} onClick={() => setOpenPopup('')} className="absolute mt-1 mr-1 top-0 right-0 cursor-pointer" />
-                    <div className="max-h-[35vh] overflow-y-auto px-4">
-                        <div className="grid grid-cols-2 gap-4">
-                            {Fonts.map((font) => (
-                                <button key={font} style={{ fontFamily: font, fontSize: 24 }} onClick={() => {
-                                    if (selectedText) {
-                                        setSelectedFont(font);
-                                        updateTextProperty(canvas, selectedText, "fontFamily", font);
-                                    }
-                                }}>
-                                    <div className="flex flex-col border border-black p-4" style={{
-                                        border: selectedFont === font ? '2px solid black' : '1px solid black',
-                                        backgroundColor: selectedFont === font ? '#f0f0f0' : ''
-                                    }}>
-                                        <span>One More</span>
-                                        <span className="font-sans text-xs">{font}</span>
-                                    </div>
-                                </button>
-                            ))}
+            <BottomSheet isOpen={openPopup === 'open_layer_bottom_sheet'} onClose={() => setOpenPopup('')}>
+                <div
+                    className="bg-gray-300 rounded-2xl"
+                    style={{
+                        position: "absolute",
+                        bottom: 0,
+                        width: fabricCanvasRef?.current?.getWidth() || selectedPhone.width,
+                        left: canvasRef.current ? canvasRef.current.getBoundingClientRect().left : 0,
+                        padding: "16px",
+                        zIndex: 100,
+                    }}
+                >
+                    <div className="p-4">
+                        <div className="flex gap-2 mb-2 place-items-center place-content-center">
+                            <div className="pb-2 flex-grow leading-0">Layers</div>
+                            <button onClick={() => bringForward()} disabled={!selectedObject}>
+                                <TbLayersSelected size={24} title="Bring forward"/>
+                            </button>
+                            <button onClick={() => sendBackward()} disabled={!selectedObject}>
+                                <TbLayersSelectedBottom size={24} title="Send backward"/>
+                            </button>
+
+                            <button onClick={() => bringToFront()} disabled={!selectedObject}>
+                                <BiSolidLayer size={24} title="Bring to front"/>
+                            </button>
+
+                            <button onClick={() => sendToBack()} disabled={!selectedObject}>
+                                <VscLayersDot size={24} title="Send to back"/>
+                            </button>
 
                         </div>
+                        <ul className="max-h-80 overflow-y-auto">
+                            {objects.toReversed().map((obj, index) => (
+                                <li
+                                    key={index}
+                                    onClick={() => handleSelectObject(obj)}
+                                    style={{
+                                        cursor: 'pointer',
+                                        padding: '5px',
+                                        backgroundColor: selectedObject === obj ? '#ccc' : 'transparent',
+                                        border: '1px solid #ddd',
+                                        marginBottom: '5px',
+                                    }}
+                                    className="flex gap-2 items-center"
+                                >
+                                    {
+                                        obj.type === 'image' ?
+                                            <FaFileImage /> :
+                                            obj.type === 'i-text' ?
+                                                <MdOutlineTextFields /> :
+                                                <MdCheckBoxOutlineBlank />
+                                    }
+                                    {obj.type || obj.name || `Object ${index + 1}`}
+                                </li>
+                            ))}
+                        </ul>
                     </div>
                 </div>
             </BottomSheet>
@@ -424,7 +452,6 @@ export default function Home() {
                     }
                 </div>
             </Modal>
-
         </div>
     );
 }
