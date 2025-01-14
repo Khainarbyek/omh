@@ -28,7 +28,7 @@ export const TextEditor = ({ selectedText, canvas }: TextEditorProps) => {
     setFontColor(selectedText.fill as string || "#000000");
     setIsUnderline(selectedText.underline === true ? true : false);
     setIslineThrough(selectedText.linethrough === true ? true : false);
-  }, [])
+  }, [selectedText])
 
   return (
     <div>

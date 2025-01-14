@@ -19,6 +19,9 @@ import { TextEditor } from "@/components/TextEditor";
 import { BottomSheet } from "@/components/bottomsheet";
 import { FaFileImage } from "react-icons/fa6";
 import { MdCheckBoxOutlineBlank, MdOutlineTextFields } from "react-icons/md";
+import { TbLayersSelected, TbLayersSelectedBottom } from "react-icons/tb";
+import { BiSolidLayer } from "react-icons/bi";
+import { VscLayersDot } from "react-icons/vsc";
 export default function Home() {
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -91,11 +94,6 @@ export default function Home() {
             // Handle selection events
             c.on("selection:created", (e) => {
                 setSelectedObject(e.selected?.[0] || null);
-                // const activeObject = c.getActiveObject();
-                // if (activeObject && activeObject.type === "i-text") {
-                //     const textObject = activeObject as fabric.IText;
-                // }
-                // setSelectedObject(activeObject);
             });
 
             c.on('selection:updated', (e) => {
@@ -126,6 +124,37 @@ export default function Home() {
         setSelectedObject(object);
     };
 
+    // Function to move object forward in the stack
+    const bringForward = () => {
+        if (selectedObject && canvasRef.current) {
+            fabricCanvasRef.current?.bringForward(selectedObject);
+            fabricCanvasRef.current?.renderAll();
+            setObjects(canvas?.getObjects() ?? []);
+        }
+    };
+
+    // Function to move object backward in the stack
+    const sendBackward = () => {
+        if (selectedObject && canvasRef.current) {
+            fabricCanvasRef.current?.sendBackwards(selectedObject);
+            fabricCanvasRef.current?.renderAll();
+            setObjects(canvas?.getObjects() ?? []);
+        }
+    };
+
+    const bringToFront = () => {
+        if (selectedObject && canvasRef.current) {
+            fabricCanvasRef.current?.bringToFront(selectedObject);
+            fabricCanvasRef.current?.renderAll();
+        }
+    };
+
+    const sendToBack = () => {
+        if (selectedObject && canvasRef.current) {
+            fabricCanvasRef.current?.sendToBack(selectedObject);
+            fabricCanvasRef.current?.renderAll();
+        }
+    };
 
     //TODO: Use the cloneProduct function cloneProduct("9692855959837");
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -164,7 +193,7 @@ export default function Home() {
     }, []);
 
     return (
-        <div className="w-full h-full relative bg-gray-200 min-h-screen">
+        <div className="w-full h-full relative bg-gray-200">
             <div className="relative h-screen">
                 <div className="ml-16 my-16 inline-block relative">
                     <div className="mobileFrame overflow-hidden">
@@ -174,7 +203,9 @@ export default function Home() {
                             width={fabricCanvasRef?.current?.getWidth() || selectedPhone.width}
                             height={fabricCanvasRef?.current?.getHeight() || selectedPhone.height}
                             src={selectedPhone.svg}
-                            alt="" />
+                            alt=""
+                            priority
+                        />
                     </div>
                     <div className="absolute left-0 -ml-14 z-10 text-white">
                         <div className="flex flex-col place-items-center gap-4">
@@ -241,14 +272,11 @@ export default function Home() {
                         <TextEditor selectedText={selectedObject} canvas={canvas} />
                     </div>
                 )}
-
-
-
             </div>
 
             <BottomSheet isOpen={openPopup === 'open_layer_bottom_sheet'} onClose={() => setOpenPopup('')}>
                 <div
-                    className="bg-gray-300 rounded-2xl max-h-80 overflow-y-auto"
+                    className="bg-gray-300 rounded-2xl"
                     style={{
                         position: "absolute",
                         bottom: 0,
@@ -259,9 +287,26 @@ export default function Home() {
                     }}
                 >
                     <div className="p-4">
-                        <h3 className="pb-2">Layers</h3>
-                        <ul>
-                            {objects.map((obj, index) => (
+                        <div className="flex gap-2 mb-2 place-items-center place-content-center">
+                            <div className="pb-2 flex-grow leading-0">Layers</div>
+                            <button onClick={() => bringForward()} disabled={!selectedObject}>
+                                <TbLayersSelected size={24} title="Bring forward"/>
+                            </button>
+                            <button onClick={() => sendBackward()} disabled={!selectedObject}>
+                                <TbLayersSelectedBottom size={24} title="Send backward"/>
+                            </button>
+
+                            <button onClick={() => bringToFront()} disabled={!selectedObject}>
+                                <BiSolidLayer size={24} title="Bring to front"/>
+                            </button>
+
+                            <button onClick={() => sendToBack()} disabled={!selectedObject}>
+                                <VscLayersDot size={24} title="Send to back"/>
+                            </button>
+
+                        </div>
+                        <ul className="max-h-80 overflow-y-auto">
+                            {objects.toReversed().map((obj, index) => (
                                 <li
                                     key={index}
                                     onClick={() => handleSelectObject(obj)}
@@ -275,11 +320,11 @@ export default function Home() {
                                     className="flex gap-2 items-center"
                                 >
                                     {
-                                        obj.type === 'image' ? 
-                                            <FaFileImage /> : 
-                                            obj.type === 'i-text' ? 
-                                            <MdOutlineTextFields /> : 
-                                            <MdCheckBoxOutlineBlank />
+                                        obj.type === 'image' ?
+                                            <FaFileImage /> :
+                                            obj.type === 'i-text' ?
+                                                <MdOutlineTextFields /> :
+                                                <MdCheckBoxOutlineBlank />
                                     }
                                     {obj.type || obj.name || `Object ${index + 1}`}
                                 </li>
