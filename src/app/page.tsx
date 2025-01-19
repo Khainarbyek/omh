@@ -17,11 +17,8 @@ import { useTextUtils } from "@/utils/textUtils";
 import "../../public/fonts.css"
 import { TextEditor } from "@/components/TextEditor";
 import { BottomSheet } from "@/components/bottomsheet";
-import { FaFileImage } from "react-icons/fa6";
-import { MdCheckBoxOutlineBlank, MdOutlineTextFields } from "react-icons/md";
-import { TbLayersSelected, TbLayersSelectedBottom } from "react-icons/tb";
-import { BiSolidLayer } from "react-icons/bi";
-import { VscLayersDot } from "react-icons/vsc";
+import "../../public/fonts.css"
+import { Layers } from "@/components/Layers";
 export default function Home() {
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -108,6 +105,17 @@ export default function Home() {
                 setObjects(c.getObjects());
             });
 
+            // c.on('object:selected', (e) => {
+            //     const selectedObject = e.target;
+                
+            //     // Disable the automatic bringing to front by removing this line
+            //     // selectedObject.bringToFront(); // Do not call this method
+              
+            //     // Optionally, you can force the selected object to stay where it is in the stack
+            //     // selectedObject.moveTo(selectedObject.canvas._objects.length - 1); // Keeps it in the same layer position
+            //   });
+              
+
             setObjects(c.getObjects());
 
             setCanvas(c);
@@ -117,44 +125,6 @@ export default function Home() {
             };
         }
     }, [isResetCanvas, selectedPhone]);
-
-    const handleSelectObject = (object: fabric.Object) => {
-        canvas?.setActiveObject(object);
-        canvas?.renderAll();
-        setSelectedObject(object);
-    };
-
-    // Function to move object forward in the stack
-    const bringForward = () => {
-        if (selectedObject && canvasRef.current) {
-            fabricCanvasRef.current?.bringForward(selectedObject);
-            fabricCanvasRef.current?.renderAll();
-            setObjects(canvas?.getObjects() ?? []);
-        }
-    };
-
-    // Function to move object backward in the stack
-    const sendBackward = () => {
-        if (selectedObject && canvasRef.current) {
-            fabricCanvasRef.current?.sendBackwards(selectedObject);
-            fabricCanvasRef.current?.renderAll();
-            setObjects(canvas?.getObjects() ?? []);
-        }
-    };
-
-    const bringToFront = () => {
-        if (selectedObject && canvasRef.current) {
-            fabricCanvasRef.current?.bringToFront(selectedObject);
-            fabricCanvasRef.current?.renderAll();
-        }
-    };
-
-    const sendToBack = () => {
-        if (selectedObject && canvasRef.current) {
-            fabricCanvasRef.current?.sendToBack(selectedObject);
-            fabricCanvasRef.current?.renderAll();
-        }
-    };
 
     //TODO: Use the cloneProduct function cloneProduct("9692855959837");
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -286,51 +256,11 @@ export default function Home() {
                         zIndex: 100,
                     }}
                 >
-                    <div className="p-4">
-                        <div className="flex gap-2 mb-2 place-items-center place-content-center">
-                            <div className="pb-2 flex-grow leading-0">Layers</div>
-                            <button onClick={() => bringForward()} disabled={!selectedObject}>
-                                <TbLayersSelected size={24} title="Bring forward"/>
-                            </button>
-                            <button onClick={() => sendBackward()} disabled={!selectedObject}>
-                                <TbLayersSelectedBottom size={24} title="Send backward"/>
-                            </button>
-
-                            <button onClick={() => bringToFront()} disabled={!selectedObject}>
-                                <BiSolidLayer size={24} title="Bring to front"/>
-                            </button>
-
-                            <button onClick={() => sendToBack()} disabled={!selectedObject}>
-                                <VscLayersDot size={24} title="Send to back"/>
-                            </button>
-
-                        </div>
-                        <ul className="max-h-80 overflow-y-auto">
-                            {objects.toReversed().map((obj, index) => (
-                                <li
-                                    key={index}
-                                    onClick={() => handleSelectObject(obj)}
-                                    style={{
-                                        cursor: 'pointer',
-                                        padding: '5px',
-                                        backgroundColor: selectedObject === obj ? '#ccc' : 'transparent',
-                                        border: '1px solid #ddd',
-                                        marginBottom: '5px',
-                                    }}
-                                    className="flex gap-2 items-center"
-                                >
-                                    {
-                                        obj.type === 'image' ?
-                                            <FaFileImage /> :
-                                            obj.type === 'i-text' ?
-                                                <MdOutlineTextFields /> :
-                                                <MdCheckBoxOutlineBlank />
-                                    }
-                                    {obj.type || obj.name || `Object ${index + 1}`}
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
+                    {
+                        canvas && fabricCanvasRef.current && (
+                            <Layers canvas={canvas} selectedObject={selectedObject} setSelectedObject={setSelectedObject} fabricObjects={objects} />
+                        )
+                    }
                 </div>
             </BottomSheet>
 
